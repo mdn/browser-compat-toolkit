@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   'bc_history_head': 'Implementation Notes',
   'bc_icon_name_altname': 'Alternate Name',
   'bc_icon_name_chrome': 'Chrome',
