@@ -1,5 +1,8 @@
 Browser Compat Toolkit
 ---
+
+[![Build Status](https://travis-ci.org/mdn/browser-compat-toolkit.svg?branch=master)](https://travis-ci.org/mdn/browser-compat-toolkit)
+
 Toolkit for visualizing and editing MDN's browser compatibility data.
 
 **EXPERIMENTAL**

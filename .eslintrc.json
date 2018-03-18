@@ -1,0 +1,9 @@
+{
+    "extends": "standard",
+    "env": {
+        "es6": "true"
+    },
+    "rules": {
+        "no-template-curly-in-string": "warn"
+    }
+}
