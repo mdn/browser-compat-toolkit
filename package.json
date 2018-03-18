@@ -1,31 +1,40 @@
 {
-  "name": "mdn-browser-compat-toolkit",
-  "version": "0.0.1",
-  "description": "Toolkit for visualizing and editing MDN's browser compatibility data",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "render": "node ./bin/render.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mdn/browser-compat-toolkit.git"
-  },
-  "keywords": [
-    "MDN",
-    "BCD",
-    "browser",
-    "compat",
-    "data",
-    "tables"
-  ],
-  "author": "MDN Web Docs",
-  "license": "MPL-2.0",
-  "bugs": {
-    "url": "https://github.com/mdn/browser-compat-toolkit/issues"
-  },
-  "homepage": "https://github.com/mdn/browser-compat-toolkit",
-  "devDependencies": {
-    "mdn-browser-compat-data": "0.0.28"
-  }
+    "name": "mdn-browser-compat-toolkit",
+    "version": "0.0.1",
+    "description": "Toolkit for visualizing and editing MDN's browser compatibility data",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "render": "node ./bin/render.js",
+        "lint": "./node_modules/.bin/eslint --ignore-path .eslintignore src/*"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/mdn/browser-compat-toolkit.git"
+    },
+    "keywords": [
+        "MDN",
+        "BCD",
+        "browser",
+        "compat",
+        "data",
+        "tables"
+    ],
+    "author": "MDN Web Docs",
+    "license": "MPL-2.0",
+    "bugs": {
+        "url": "https://github.com/mdn/browser-compat-toolkit/issues"
+    },
+    "homepage": "https://github.com/mdn/browser-compat-toolkit",
+    "devDependencies": {
+        "mdn-browser-compat-data": "0.0.28",
+        "eslint": "^4.19.0",
+        "eslint-config-standard": "^11.0.0",
+        "eslint-plugin-import": "^2.9.0",
+        "eslint-plugin-node": "^6.0.1",
+        "eslint-plugin-promise": "^3.7.0",
+        "eslint-plugin-standard": "^3.0.1",
+        "webpack": "^4.1.1",
+        "webpack-cli": "^2.0.12"
+    }
 }
