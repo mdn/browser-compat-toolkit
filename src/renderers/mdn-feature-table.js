@@ -21,7 +21,9 @@ Sample:
 render(bcd.webextensions.api.alarms, {'query': 'webextensions.api.alarms'});
 */
 
-import * as defaultStrings from './english-strings'
+// import * as defaultStrings from './english-strings'
+
+const defaultStrings = require('./english-strings')
 
 const browsers = {
   'desktop': ['chrome', 'edge', 'firefox', 'ie', 'opera', 'safari'],
@@ -105,6 +107,9 @@ function traverseFeatures (obj, depth, identifier, features) {
   }
 }
 
+/*
+ * Rendering functions!
+ */
 function writeCompatHead (strings, platforms, displayBrowers) {
   let output = '<thead>'
   output += writeCompatPlatformsRow(strings, platforms)
