@@ -1,0 +1,22 @@
+{
+  "name": "browser-compat-toolkit",
+  "description": "Toolkit for visualizing and editing MDN's browser compatibility data",
+  "repository": {
+    "url": "https://github.com/mdn/browser-compat-toolkit",
+    "license": "MPL-2.0"
+  },
+  "participate": {
+    "home": "https://developer.mozilla.org/",
+    "docs": "https://github.com/mdn/browser-compat-toolkit",
+    "mailing-list": "https://discourse.mozilla.org/c/mdn",
+    "irc": "irc://irc.mozilla.org/mdn"
+  },
+  "keywords": [
+    "MDN",
+    "BCD",
+    "browser",
+    "compat",
+    "data",
+    "tables"
+  ]
+}
