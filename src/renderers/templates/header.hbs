@@ -1,5 +1,5 @@
-<!-- Write compat table header -->
-<!--
+{{!-- Write compat table header --}}
+{{!--
     Necessary context structure:
     
     {
@@ -25,7 +25,7 @@
         ]
     }
     
--->
+--}}
 <thead>
     <!-- Write compat platform row -->
     <tr class="bc-platforms">
@@ -34,7 +34,7 @@
         {{#each platform}}
         <th colspan="{{childLength}}" class="bc-platform-{{id}}">
             <abbr class="only-icon" title="{{icon.title}}">
-                <span>{{icon.name}}</span>
+                <span>{{icon.title}}</span>
                 <i aria-hidden="true" class="ic-{{icon.slug}}"></i>
             </abbr>
         </th>
@@ -47,7 +47,7 @@
         {{#each browser}}
         <th class="bc-browser-{{id}}">
             <abbr class="only-icon" title="{{icon.title}}">
-                <span>{{icon.name}}</span>
+                <span>{{icon.title}}</span>
                 <i aria-hidden="true" class="ic-{{icon.slug}}"></i>
             </abbr>
         </th>
