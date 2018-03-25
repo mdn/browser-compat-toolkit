@@ -1,0 +1,90 @@
+<!-- Compat table global structure -->
+<div class="bc-data hidden">
+    <table class="bc-table bc-table-{{category}}">
+        <!-- Write compat table header -->
+        <thead>
+            <!-- Write compat platform row -->
+            <tr class="bc-platforms">
+                <!-- An arbitrary empty td -->
+                <td></td>
+                {{#each platform}}
+                    <th colspan="{{platform.childLength}}" class="bc-platform-{{platform.id}}">
+                        <abbr class="only-icon" title="{{platform.icon.title}}">
+                            <span>{{platform.icon.name}}</span>
+                            <i aria-hidden="true" class="ic-{{platform.icon.slug}}"></i>
+                        </abbr>
+                    </th>
+                {{/each}}
+            </tr>
+            <!-- Write compat browsers row -->
+            <tr class="bc-browsers">
+                <!-- An arbitrary empty td -->
+                <td></td>
+                {{#each browser}}
+                    <th class="bc-browser-{{browser.id}}">
+                        <abbr class="only-icon" title="{{browser.icon.title}}">
+                                <span>{{browser.icon.name}}</span>
+                                <i aria-hidden="true" class="ic-{{browser.icon.slug}}"></i>
+                        </abbr>
+                    </th>
+                {{/each}}
+            </tr>
+        </thead>
+
+        <!-- Write compat table body -->
+        <tbody>
+            {{#each feature}}
+                <tr>
+                    <th scope="row">
+                        <!-- call function writeFeatureName (strings, row, feature, forMDNURL, legendItems) -->
+                    </th>
+                    <!-- call writeCompatCells(strings, feature.support, displayBrowsers, legendItems) -->
+                    {{#each displayBrowser}}
+                        <td class="bc-supports-{{feature.support.class}} bc-browser-{{displayBrowser.name}} 
+                        {{#if feature.needsNote}} bc-has-history {{/if}}">
+                            {{displayBrowser.support.info}}
+
+                            {{#if feature.needsNote}}
+                                <!-- writeCompatCells: 616 -->
+                                <!-- call writeCellIcons(strings, support, legendItems) -->
+                                <!-- call writeNotes(strings, support, browserNameKey, legendItems) -->
+                            {{#/if}}
+                        </td>
+                    {{/each}}
+                </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <!-- call writeLegend(strings, legendItems) -->
+    <section class="bc-legend">
+        <h3 class="offscreen">{{legend.id}}</h3>
+        <dl>
+            {{#each legend.item}}
+                {{#if legend.item.support}}
+                    <dt>
+                        <span class="bc-supports-{{legend.item.support.type}} bc-supports">
+                            <abbr title="{{legend.item.support.title}}" class="bc-level bc-level-{{legend.item.support.type}} only-icon">
+                                <span>{{legend.item.support.title}}</span>
+                                &nbsp;
+                            </abbr>
+                        </span>
+                    </dt>
+                    <dd>{{legend.item.support.title}}</dd>
+                {{else}}
+                    <dt>
+                        <!--call writeIcon(strings, item, '', true) -->
+                        <<abbr title="{{legend.item.icon.name}}" class="only-icon">
+                            <span>{{legend.item.icon.name}}</span>
+                            <i aria-hidden="true" class="ic-{{legend.item.icon.slug}}"></i>
+                        </abbr>
+                    </dt>
+                    <dd>
+                        {{legend.item.title}}
+                    </dd>
+                {{/if}}
+
+            {{/each}}
+        </dl>
+    </section>
+</div>
