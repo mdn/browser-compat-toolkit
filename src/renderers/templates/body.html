@@ -1,0 +1,56 @@
+<!-- Write compat table body -->
+<!--
+    Necessary context structure:
+    
+    {
+        feature: [
+            support: {
+                class: string,
+                notes: string,
+                alternative_name: string,
+                flags: string
+            },
+            needsNote: boolean
+        ],
+
+        displayBrowser: [
+            name: string,
+            support: {
+                info: string
+            }
+        ]
+    }
+    
+-->
+
+<tbody>
+    {{#each feature}}
+    <tr>
+        <th scope="row">
+            <!-- call function writeFeatureName (strings, row, feature, forMDNURL, legendItems) -->
+        </th>
+        <!-- call writeCompatCells(strings, feature.support, displayBrowsers, legendItems) -->
+        {{#each displayBrowser}}
+        <td class="bc-supports-{{../support.class}} bc-browser-{{name}} 
+                            {{#if ../needsNote}} bc-has-history {{/if}}">
+            {{support.info}} {{#if ../needsNote}}
+            <!-- writeCompatCells: 616 -->
+            <!-- call writeCellIcons(strings, support, legendItems) -->
+            <div class="bc-icons">
+                {{#if ../support.prefix}}
+                <!-- call writeIcon(strings, 'prefix', support.prefix) -->
+                {{/if}} {{#if ../support.notes}}
+                <!-- call writeIcon(strings, 'footnote') -->
+                {{/if}} {{#if ../support.alternative_name}}
+                <!-- call writeIcon(strings, 'altname', support.alternative_name) -->
+                {{/if}} {{#if ../support.flags}}
+                <!-- call writeIcon(strings, 'disabled') -->
+                {{/if}}
+            </div>
+            <!-- call writeNotes(strings, support, browserNameKey, legendItems) -->
+            {{#/if}}
+        </td>
+        {{/each}}
+    </tr>
+    {{/each}}
+</tbody>
