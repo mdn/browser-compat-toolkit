@@ -1,0 +1,91 @@
+@font-face {
+    font-family:'Open Sans';
+    font-display:'fallback';
+    src:url("./fonts/OpenSans-Regular-webfont.3f642fa3ea74.woff2") format("woff2"),url("./fonts/OpenSans-Regular-webfont.ac327c4db628.woff") format("woff");
+    font-weight:400;
+    font-style:normal
+   }
+   @font-face {
+    font-family:'Open Sans';
+    font-display:'optional';
+    src:url("./fonts/OpenSans-Semibold-webfont.b25e8a5a61a4.woff2") format("woff2"),url("./fonts/OpenSans-Semibold-webfont.56bfcae65300.woff") format("woff");
+    font-weight:700;
+    font-style:normal
+   }
+   @font-face {
+    font-family:'Open Sans';
+    font-display:'fallback';
+    src:url("./fonts/OpenSans-Italic-webfont.47c24d65c5a6.woff2") format("woff2"),url("./fonts/OpenSans-Italic-webfont.525074686dfb.woff") format("woff");
+    font-weight:400;
+    font-style:italic
+   }
+   
+   /* Required for ".ic-deprecated::before" rule in wiki-compat-tables CSS which uses "font-family: FontAwesome" */
+   @font-face {
+    font-family:FontAwesome;
+    src:url("./fonts/fontawesome-webfont.90186830c9c5.eot?v=4.1.0");
+    src:url("./fonts/fontawesome-webfont.90186830c9c5.eot?#iefix&v=4.1.0") format("embedded-opentype"),url("./fonts/fontawesome-webfont.fdf491ce5ff5.woff?v=4.1.0") format("woff"),url("./fonts/fontawesome-webfont.4f0022f25672.ttf?v=4.1.0") format("truetype"),url("./fonts/fontawesome-webfont.776d58f453c8.svg?v=4.1.0#fontawesomeregular") format("svg");
+    font-weight:400;
+    font-style:normal
+   }
+   
+   
+   
+   a,abbr,address,article,aside,audio,b,blockquote,body,canvas,caption,cite,code,dd,del,details,dfn,div,dl,dt,em,fieldset,figcaption,figure,footer,form,h1,h2,h3,h4,h5,h6,header,hgroup,hr,html,i,iframe,img,ins,kbd,label,legend,li,mark,menu,nav,object,ol,p,pre,q,samp,section,small,span,strong,sub,summary,sup,table,tbody,td,tfoot,th,thead,time,tr,ul,var,video {
+    margin:0;
+    padding:0;
+    border:0
+   }
+   aside,details {
+    margin-left:20px
+   }
+   address,caption,cite,code,dfn,th,var {
+    font-style:inherit;
+    font-weight:inherit
+   }
+   a img {
+    border:0
+   }
+   html {
+    color:#333
+   }
+   body {
+    line-height:1.5;
+    font-family:"Open Sans",arial,x-locale-body,sans-serif
+   }
+   
+   .cta-link, a, summary {
+       color: #3f87a6;
+   }
+   
+   
+   :not(pre) > * > code, :not(pre) > code {
+       background-color: #bbb;
+       background-color: rgba(220,220,220,.5);
+       border-radius: 2px;
+       box-decoration-break: clone;
+       font-family: consolas,"Liberation Mono",courier,monospace;
+       padding: 0 2px;
+       word-wrap: break-word;
+   
+     font-weight: inherit;
+     font-style: inherit;
+   }
+   
+   table.bc-table {
+       border-collapse: separate;
+       border-spacing: 0;
+   }
+   
+   
+   .offscreen, .only-icon span {
+       border: 0;
+       clip: rect(0 0 0 0);
+       height: 1px;
+       margin: -1px;
+       overflow: hidden;
+       padding: 0;
+       position: absolute;
+       width: 1px;
+   }
+   

@@ -1,6 +1,6 @@
-<!-- call writeLegend(strings, legendItems) -->
+{{!-- call writeLegend(strings, legendItems) --}}
 
-<!--
+{{!--
     Necessary context structure:
     
     {
@@ -22,7 +22,7 @@
         ],
     }
     
--->
+--}}
 
 <section class="bc-legend">
     <h3 class="offscreen">{{title}}</h3>
@@ -41,7 +41,7 @@
             {{else}}
             <dt>
                 <!--call writeIcon(strings, item, '', true) -->
-                <<abbr title="{{icon.name}}" class="only-icon">
+                <abbr title="{{icon.name}}" class="only-icon">
                     <span>{{icon.name}}</span>
                     <i aria-hidden="true" class="ic-{{icon.slug}}"></i>
                 </abbr>

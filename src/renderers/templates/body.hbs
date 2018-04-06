@@ -8,9 +8,15 @@
                 class: string,
                 notes: string,
                 alternative_name: string,
-                flags: string
+                flags: string,
+                prefix: string
             },
-            needsNote: boolean
+            needsNote: boolean,
+            description: string,
+            name: string,
+            mdn_url: string,
+            status: [string, string, ...],
+            label: string
         ],
 
         displayBrowser: [
@@ -18,7 +24,15 @@
             support: {
                 info: string
             }
-        ]
+        ],
+
+        icons: [
+            {
+                description: string,
+                slug: string,
+                name: string
+            }
+        ],
     }
     
 -->
@@ -27,7 +41,38 @@
     {{#each feature}}
     <tr>
         <th scope="row">
-            <!-- call function writeFeatureName (strings, row, feature, forMDNURL, legendItems) -->
+            {{#if mdn_url}}
+                <a href="{{mdn_url}}">{{description}}</a>
+            {{else}}
+                {{description}}
+            {{/if}}
+
+            {{#if status}}
+                <div class="bc-icons">
+                    <!-- call writeIcons for experimentalIcon -->
+                    {{#if status.includes('experimental')}}
+                        <abbr class="only-icon" title="{{icons['experimental'].description}}">
+                            <span>{{icons['experimental'].name}}</span>
+                            <i aria-hidden="true" class="ic-{{icons['experimental'].slug}}"></i>
+                        </abbr>
+                    {{/if}}
+                    <!-- call writeIcons for deprecatedIcon -->
+                    {{#if status.includes('deprecated')}}
+                        <abbr class="only-icon" title="{{icons['deprecated'].description}}">
+                            <span>{{icons['deprecated'].name}}</span>
+                            <i aria-hidden="true" class="ic-{{icons['deprecated'].slug}}"></i>
+                        </abbr>
+                    {{/if}}
+                    <!-- call writeIcons for nonStandardIcon -->
+                    {{#if status.includes('non-standard')}}
+                        <abbr class="only-icon" title="{{icons['non-standard'].description}}">
+                            <span>{{icons['non-standard'].name}}</span>
+                            <i aria-hidden="true" class="ic-{{icons['non-standard'].slug}}"></i>
+                        </abbr>
+                    {{/if}}
+                </div>
+            {{/if}}
+            {{!-- TODO: Create an helper to do this --}}
         </th>
         <!-- call writeCompatCells(strings, feature.support, displayBrowsers, legendItems) -->
         {{#each displayBrowser}}
@@ -48,7 +93,7 @@
                 {{/if}}
             </div>
             <!-- call writeNotes(strings, support, browserNameKey, legendItems) -->
-            {{#/if}}
+            {{/if}}
         </td>
         {{/each}}
     </tr>

@@ -1,0 +1,179 @@
+{{!--
+Structure: 
+
+{
+    description: string,
+    mdn_url: string,
+    support: {
+        "webview_android": {
+            "version_added": false,
+            cssClass: string,
+        },
+        "chrome": {
+            "version_added": false,
+            cssClass: string,
+            supportInfo: string
+        },
+    },
+    "status": {
+        "experimental": false,
+		"standard_track": false,
+		"deprecated": true
+    }
+}
+--}}
+
+
+{{!-- 
+    Define inline partials for cell values
+--}}
+
+{{#*inline "support"}}
+    <abbr title="Full support" class="bc-level-yes only-icon">
+        <span>Full support</span>
+    </abbr>
+    {{#isString version_added}}
+        {{version_added}}
+    {{else}}
+        Yes
+    {{/isString}}
+{{/inline}}
+
+{{#*inline "nosupport"}}
+    <abbr title="No support" class="bc-level-no only-icon">
+        <span>No support</span>
+    </abbr>
+    {{#isNotSupportedAnymore this}}
+        {{version_added }} - {{version_removed}}
+    {{else}}
+        {{#isString version_removed}}
+            {{version_removed}}
+        {{else}}
+            No
+        {{/isString}}
+    {{/isNotSupportedAnymore}}
+{{/inline}}
+
+{{#*inline "partial"}}
+    <abbr title="Partial support" class="bc-level-partial only-icon">
+        <span>Partial support</span>
+    </abbr>
+    {{#isString version_added}}
+        {{version_added}}
+    {{else}}
+        Partial
+    {{/isString}}
+{{/inline}}
+
+{{#*inline "unknown"}}
+    <abbr title="Compatibility unknown; please update this.">
+        ?
+    </abbr>
+{{/inline}}
+
+<tbody>
+    {{#each feature}}
+    <!-- {{feature}} {{@key}} -->
+    <tr>
+        <th scope="row">
+            {{#if mdn_url}}
+                <a href="{{mdn_url}}">{{description}}</a>
+            {{else}}
+                {{description}}
+            {{/if}}
+
+            {{#if (needStatusIcons status) }}
+                <div class="bc-icons">
+                    <!-- call writeIcons for experimentalIcon -->
+                    {{#if status.experimental}}
+                        <!-- TODO: Put proper icon code -->
+                        {{!-- 
+                        <abbr class="only-icon" title="{{icons['experimental'].description}}">
+                            <span>{{icons['experimental'].name}}</span>
+                            <i aria-hidden="true" class="ic-{{icons['experimental'].slug}}"></i>
+                        </abbr>
+                        --}}
+                    {{/if}}
+                    <!-- call writeIcons for deprecatedIcon -->
+                    {{#if status.deprecated}}
+                        {{!--
+                        <!-- TODO: Put proper icon code -->
+                        <abbr class="only-icon" title="{{icons['deprecated'].description}}">
+                            <span>{{icons['deprecated'].name}}</span>
+                            <i aria-hidden="true" class="ic-{{icons['deprecated'].slug}}"></i>
+                        </abbr>
+                        --}}
+                    {{/if}}
+                    <!-- call writeIcons for nonStandardIcon -->
+                    {{#if status.standard_track}}
+                        {{!-- 
+                        <!-- TODO: Put proper icon code -->
+                        <abbr class="only-icon" title="{{icons['non-standard'].description}}">
+                            <span>{{icons['non-standard'].name}}</span>
+                            <i aria-hidden="true" class="ic-{{icons['non-standard'].slug}}"></i>
+                        </abbr>
+                        --}}
+                    {{/if}}
+                </div>
+            {{/if}}
+            {{!-- TODO: Create an helper to do this --}}
+        </th>
+        {{#each support}}
+
+        <!-- call writeCompatCells(strings, feature.support, displayBrowsers, legendItems) -->
+        <td class="bc-supports-{{cssClass}} bc-browser-{{@key}}{{#if supportInfo }} bc-has-history {{/if}}">
+            {{supportInfo}} 
+            
+            {{#if version_added}}
+                {{#if version_removed}}
+                    {{> nosupport}}
+                {{else if partial_implementation}}
+                    {{> partial}}
+                {{else}}
+                    {{> support}}
+                {{/if}}
+            {{else if (ifExists version_removed)}}
+                {{> nosupport }}
+            {{else}}
+                {{> unknown}}
+            {{/if}}
+
+            {{#if supportInfo}}
+                <!-- writeCompatCells: 616 -->
+                <!-- call writeCellIcons(strings, support, legendItems) -->
+                <div class="bc-icons">
+                    {{#if prefix}}
+                        <abbr class="only-icon" title="bc_icon_name_prefix">
+                            <span>prefix</span>
+                            <i aria-hidden="true" class="ic-prefix"></i>
+                        </abbr>
+                    {{/if}} 
+    
+                    {{#if notes}}
+                        <abbr class="only-icon" title="bc_icon_name_footnote">
+                            <span>notes</span>
+                            <i aria-hidden="true" class="ic-footnote"></i>
+                        </abbr>
+                    {{/if}}
+                    
+                    {{#if alternative_name}}
+                        <abbr class="only-icon" title="bc_icon_name_altname">
+                            <span>alternative_name</span>
+                            <i aria-hidden="true" class="ic-altname"></i>
+                        </abbr>
+                    {{/if}} 
+                    
+                    {{#if flags}}
+                        <abbr class="only-icon" title="bc_icon_name_disabled">
+                            <span>disabled</span>
+                            <i aria_hidden="true" class="ic-disabled"></i>
+                        </abbr>
+                    {{/if}}
+                </div>
+                <!-- call writeNotes(strings, support, browserNameKey, legendItems) -->
+            {{/if}}
+        </td>
+        {{/each}}
+    </tr>
+    {{/each}}
+</tbody>
