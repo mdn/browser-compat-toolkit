@@ -1,0 +1,56 @@
+{{!-- Write compat table header --}}
+{{!--
+    Necessary context structure:
+    
+    {
+        platform: [
+            {
+                id: string,
+                childLength: number,
+                icon: {
+                    title: string,
+                    slug: string
+                }
+            }
+        ],
+
+        browser: [
+            {
+                id: string,
+                icon: {
+                    title: string,
+                    slug: string
+                }
+            }
+        ]
+    }
+    
+--}}
+<thead>
+    <!-- Write compat platform row -->
+    <tr class="bc-platforms">
+        <!-- An arbitrary empty td -->
+        <td></td>
+        {{#each platform}}
+        <th colspan="{{childLength}}" class="bc-platform-{{id}}">
+            <abbr class="only-icon" title="{{icon.title}}">
+                <span>{{icon.title}}</span>
+                <i aria-hidden="true" class="ic-{{icon.slug}}"></i>
+            </abbr>
+        </th>
+        {{/each}}
+    </tr>
+    <!-- Write compat browsers row -->
+    <tr class="bc-browsers">
+        <!-- An arbitrary empty td -->
+        <td></td>
+        {{#each browser}}
+        <th class="bc-browser-{{id}}">
+            <abbr class="only-icon" title="{{icon.title}}">
+                <span>{{icon.title}}</span>
+                <i aria-hidden="true" class="ic-{{icon.slug}}"></i>
+            </abbr>
+        </th>
+        {{/each}}
+    </tr>
+</thead>

@@ -1,0 +1,101 @@
+<!-- Write compat table body -->
+<!--
+    Necessary context structure:
+    
+    {
+        feature: [
+            support: {
+                class: string,
+                notes: string,
+                alternative_name: string,
+                flags: string,
+                prefix: string
+            },
+            needsNote: boolean,
+            description: string,
+            name: string,
+            mdn_url: string,
+            status: [string, string, ...],
+            label: string
+        ],
+
+        displayBrowser: [
+            name: string,
+            support: {
+                info: string
+            }
+        ],
+
+        icons: [
+            {
+                description: string,
+                slug: string,
+                name: string
+            }
+        ],
+    }
+    
+-->
+
+<tbody>
+    {{#each feature}}
+    <tr>
+        <th scope="row">
+            {{#if mdn_url}}
+                <a href="{{mdn_url}}">{{description}}</a>
+            {{else}}
+                {{description}}
+            {{/if}}
+
+            {{#if status}}
+                <div class="bc-icons">
+                    <!-- call writeIcons for experimentalIcon -->
+                    {{#if status.includes('experimental')}}
+                        <abbr class="only-icon" title="{{icons['experimental'].description}}">
+                            <span>{{icons['experimental'].name}}</span>
+                            <i aria-hidden="true" class="ic-{{icons['experimental'].slug}}"></i>
+                        </abbr>
+                    {{/if}}
+                    <!-- call writeIcons for deprecatedIcon -->
+                    {{#if status.includes('deprecated')}}
+                        <abbr class="only-icon" title="{{icons['deprecated'].description}}">
+                            <span>{{icons['deprecated'].name}}</span>
+                            <i aria-hidden="true" class="ic-{{icons['deprecated'].slug}}"></i>
+                        </abbr>
+                    {{/if}}
+                    <!-- call writeIcons for nonStandardIcon -->
+                    {{#if status.includes('non-standard')}}
+                        <abbr class="only-icon" title="{{icons['non-standard'].description}}">
+                            <span>{{icons['non-standard'].name}}</span>
+                            <i aria-hidden="true" class="ic-{{icons['non-standard'].slug}}"></i>
+                        </abbr>
+                    {{/if}}
+                </div>
+            {{/if}}
+            {{!-- TODO: Create an helper to do this --}}
+        </th>
+        <!-- call writeCompatCells(strings, feature.support, displayBrowsers, legendItems) -->
+        {{#each displayBrowser}}
+        <td class="bc-supports-{{../support.class}} bc-browser-{{name}} 
+                            {{#if ../needsNote}} bc-has-history {{/if}}">
+            {{support.info}} {{#if ../needsNote}}
+            <!-- writeCompatCells: 616 -->
+            <!-- call writeCellIcons(strings, support, legendItems) -->
+            <div class="bc-icons">
+                {{#if ../support.prefix}}
+                <!-- call writeIcon(strings, 'prefix', support.prefix) -->
+                {{/if}} {{#if ../support.notes}}
+                <!-- call writeIcon(strings, 'footnote') -->
+                {{/if}} {{#if ../support.alternative_name}}
+                <!-- call writeIcon(strings, 'altname', support.alternative_name) -->
+                {{/if}} {{#if ../support.flags}}
+                <!-- call writeIcon(strings, 'disabled') -->
+                {{/if}}
+            </div>
+            <!-- call writeNotes(strings, support, browserNameKey, legendItems) -->
+            {{/if}}
+        </td>
+        {{/each}}
+    </tr>
+    {{/each}}
+</tbody>

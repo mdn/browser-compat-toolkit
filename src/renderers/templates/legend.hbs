@@ -1,0 +1,55 @@
+{{!-- call writeLegend(strings, legendItems) --}}
+
+{{!--
+    Necessary context structure:
+    
+    {
+        title: string,
+        legend: [
+            {
+                support: {
+                    type: string, 
+                    title, string
+                }
+                icon: {
+                    name: string,
+                    slug: string
+                },
+                item: {
+                    title: string
+                }
+            }
+        ],
+    }
+    
+--}}
+
+<section class="bc-legend">
+    <h3 class="offscreen">{{title}}</h3>
+    <dl>
+        {{#each legend}} 
+            {{#if support}}
+            <dt>
+                <span class="bc-supports-{{support.type}} bc-supports">
+                    <abbr title="{{support.title}}" class="bc-level bc-level-{{support.type}} only-icon">
+                        <span>{{support.title}}</span>
+                        &nbsp;
+                    </abbr>
+                </span>
+            </dt>
+            <dd>{{support.title}}</dd>
+            {{else}}
+            <dt>
+                <!--call writeIcon(strings, item, '', true) -->
+                <abbr title="{{icon.name}}" class="only-icon">
+                    <span>{{icon.name}}</span>
+                    <i aria-hidden="true" class="ic-{{icon.slug}}"></i>
+                </abbr>
+            </dt>
+            <dd>
+                {{item.title}}
+            </dd>
+            {{/if}} 
+        {{/each}}
+    </dl>
+</section>

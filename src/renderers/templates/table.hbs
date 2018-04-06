@@ -1,0 +1,23 @@
+{{!-- Compat table global structure --}}
+{{!--
+    Necessary context structure:
+
+    {
+        category: string
+    }
+--}}
+
+<link rel="stylesheet" href="mdn-compat.css">
+<link rel="stylesheet" href="wiki-compat-tables.css">
+
+<div class="bc-data hidden">
+    {{!-- <table class="bc-table bc-table-{{category}}"> --}}
+    <table class="bc-table bc-table-web">
+        {{!-- Integrate header.html using a partial --}}
+        {{> header header }}
+        {{!-- Integrate body.html using a partial --}}
+        {{> tbody body }}
+    </table>
+
+    {{!-- Integrate legend.html using a partial --}}
+</div>
