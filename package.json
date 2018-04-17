@@ -27,7 +27,7 @@
     },
     "homepage": "https://github.com/mdn/browser-compat-toolkit",
     "devDependencies": {
-        "mdn-browser-compat-data": "0.0.28",
+        "mdn-browser-compat-data": "^0.0.31",
         "eslint": "^4.19.0",
         "eslint-config-standard": "^11.0.0",
         "eslint-plugin-import": "^2.9.0",
