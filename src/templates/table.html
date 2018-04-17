@@ -45,16 +45,47 @@
 					</div>
 					{%- endif %}
 				</th>
-				<!-- call writeCompatCells(strings, feature.support, displayBrowsers, legendItems) -->
-				{%- for browser in displayBrowsers %}
-				<td class="bc-supports-{{ feature.support.class }} bc-browser-{{ browser.name }}
-					{%- if feature.needsNote %} bc-has-history{% endif %}">
-					{{ browser.support.info }}
-
-					{%- if feature.needsNote %}
-					<!-- writeCompatCells: 616 -->
-					<!-- call writeCellIcons(strings, support, legendItems) -->
-					<!-- call writeNotes(strings, support, browserNameKey, legendItems) -->
+				{%- for support in feature.support %}
+				<td class="bc-supports-{{ support.class }} bc-browser-{{ support.browser.id }}
+					{%- if support.needsNote %} bc-has-history{% endif %}">
+					{%- set support_info=support.info %}
+					{%- include "./support.html" %}
+					{%- if support.icons %}
+					<div class="bc-icons">
+						{%- for icon in support.icons %}
+						{%- include "./icon.html" %}
+						{%- endfor %}
+					</div>
+					{%- endif %}
+					{%- if support.notes %}
+					<section class="bc-history" aria-hidden="true">
+						<dl>
+							{%- if support.notes %}
+							{%- for note in support.notes %}
+							<dt class="bc-supports-{{ note.header.class }} bc-supports">
+								{%- set support_info=note.header.info %}
+								{%- include "./support.html" %}
+								{%- if note.header.icons %}
+								<div class="bc-icons">
+									{%- for icon in note.header.icons %}
+									{%- include "./icon.html" %}
+									{%- endfor %}
+								</div>
+								{%- endif %}
+							</dt>
+							{%- if note.content %}
+							<dd>
+								{%- for subnote in note.content %}
+								{%- set icon=subnote.icon %}
+								{%- include "./icon.html" %}
+								{{ subnote.text | safe }}
+								{%- endfor %}
+							</dd>
+							{%- endif %}
+							{%- endfor %}
+							{%- endif %}
+						</dl>
+					</section>
 					{%- endif %}
 				</td>
 				{%- endfor %}
@@ -63,7 +94,7 @@
 		</tbody>
 	</table>
 
-	<!-- call writeLegend(strings, legendItems) -->
+	<!-- Write compat table legend -->
 	<section class="bc-legend">
 		<h3 class="offscreen">{{ legend.id }}</h3>
 		<dl>

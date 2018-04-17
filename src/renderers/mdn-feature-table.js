@@ -273,63 +273,53 @@ or the version number
 `partial` is either null, true, or false indicating partial_implementation
 */
 function getCellString (strings, added, removed, partial) {
-  let output = '';
+  let output = {};
   switch (added) {
     case null:
-      output = `<abbr title="${strings['supportsShort_unknown_title']}">
-                ${strings['supportsShort_unknown']}
-              </abbr>`;
-      break
+      output.title = strings['supportsShort_unknown_title'];
+      output.text = strings['supportsShort_unknown'];
+      break;
     case true:
-      output = `<abbr title="${strings['supportsLong_yes']}"
-                class="bc-level-yes only-icon">
-                <span>${strings['supportsLong_yes']}</span>
-              </abbr>
-              ${strings['supportsShort_yes']}`;
-      break
+      output.class = 'bc-level-yes';
+      output.title = strings['supportsLong_yes'];
+      output.text = strings['supportsLong_yes'];
+      output.added = strings['supportsShort_yes'];
+      break;
     case false:
-      output = `<abbr title="${strings['supportsLong_no']}"
-                class="bc-level-no only-icon">
-                <span>${strings['supportsLong_no']}</span>
-              </abbr>
-              ${strings['supportsShort_no']}`;
-      break
+      output.class = 'bc-level-no';
+      output.title = strings['supportsLong_no'];
+      output.text = strings['supportsLong_no'];
+      output.added = strings['supportsShort_no'];
+      break;
     default:
-      output = `<abbr title="${strings['supportsLong_yes']}"
-                class="bc-level-yes only-icon">
-                <span>${strings['supportsLong_yes']}</span>
-              </abbr>
-              ${added}`;
+      output.class = 'bc-level-yes';
+      output.title = strings['supportsLong_yes'];
+      output.text = strings['supportsLong_yes'];
+      output.added = added;
+      break;
   }
   if (removed) {
-    output = `<abbr title="${strings['supportsLong_no']}"
-              class="bc-level-no only-icon">
-              <span>${strings['supportsLong_no']}</span>
-            </abbr>`;
+    output.class = 'bc-level-no';
+    output.title = strings['supportsLong_no'];
+    output.text = strings['supportsLong_no'];
     // We don't know when supported started
     if (typeof (added) === 'boolean' && added) {
-      output += '?';
-    } else { // We know when
-      output += added;
+      output.added = '?';
     }
-    output += '&nbsp;— ';
     // We don't know when supported ended
     if (typeof (removed) === 'boolean' && removed) {
-      output += '?';
+      output.removed = '?';
     } else { // We know when
-      output += removed;
+      output.removed = removed;
     }
     // removed wins over partial
   } else if (partial) {
-    output = `<abbr title="${strings['supportsLong_partial']}"
-              class="bc-level-partial only-icon">
-              <span>${strings['supportsLong_partial']}</span>
-            </abbr>`;
+    output.class = 'bc-level-partial';
+    output.title = strings['supportsLong_partial'];
+    output.text = strings['supportsLong_partial'];
     // Display "Partial" instead of "Yes", "No", or "?" if we have no version string
     if (typeof (added) !== 'string') {
-      output += strings['supportsShort_partial'];
-    } else {
-      output += added;
+      output.added = strings['supportsShort_partial'];
     }
   }
   return output;
@@ -387,7 +377,7 @@ for either a preference flag or a compile flag.
 `supportData` is a support_statement
 `browserId` is a compat_block browser ID
 */
-function writeFlagsNote (supportData, browserId) {
+function processFlagsNote (supportData, browserId) {
   let output = '';
 
   const firefoxPrefs = ' To change preferences in Firefox, visit about:config.';
@@ -469,34 +459,32 @@ Generates icons for the main cell
 `supportData` is a support_statement
 
 */
-function writeCellIcons (strings, support, legendItems) {
-  let output = '<div class="bc-icons">';
+function processCellIcons (strings, support, legendItems) {
+  let output = [];
 
   if (Array.isArray(support)) {
     // the first entry should be the most relevant/recent and will be used for the main cell
     support = support[0];
   }
   if (support.prefix) {
-    output += writeIcon(strings, 'prefix', support.prefix) + ' ';
+    output.push(processIcon(strings, 'prefix', support.prefix));
     legendItems.add('prefix');
   }
 
   if (support.notes) {
-    output += writeIcon(strings, 'footnote') + ' ';
+    output.push(processIcon(strings, 'footnote'));
     legendItems.add('footnote');
   }
 
   if (support.alternative_name) {
-    output += writeIcon(strings, 'altname', support.alternative_name) + ' ';
+    output.push(processIcon(strings, 'altname', support.alternative_name));
     legendItems.add('altname');
   }
 
   if (support.flags) {
-    output += writeIcon(strings, 'disabled') + ' ';
+    output.push(processIcon(strings, 'disabled'));
     legendItems.add('disabled');
   }
-
-  output += '</div>';
 
   return output;
 }
@@ -508,31 +496,31 @@ Create notes section
 `browserId` is a compat_block browser ID
 
 */
-function writeNotes (strings, support, browserId, legendItems) {
-  let output = '<section class="bc-history" aria-hidden="true"><dl>';
+function processNotes (strings, support, browserId, legendItems) {
+  let output = [];
 
   if (Array.isArray(support)) {
     for (let supportItem of support) {
-      writeSingleNote(strings, supportItem, browserId, legendItems);
+      output.push(processSingleNote(strings, supportItem, browserId, legendItems));
     }
   } else {
-    writeSingleNote(strings, support, browserId, legendItems);
+    output.push(processSingleNote(strings, support, browserId, legendItems));
   }
 
-  function writeSingleNote (strings, support, browserId, legendItems) {
+  function processSingleNote (strings, support, browserId, legendItems) {
+    let header = {
+      class: getSupportClass(support),
+      icons: processCellIcons(strings, support, legendItems),
+      info: getCellString(strings,
+        support.version_added,
+        support.version_removed,
+        support.partial_implementation)
+    };
     let notes = [];
-
-    output += `<dt class="bc-supports-${getSupportClass(support)} bc-supports">`;
-    output += getCellString(strings,
-      support.version_added,
-      support.version_removed,
-      support.partial_implementation);
-    output += writeCellIcons(strings, support, legendItems);
-    output += '</dt>';
 
     if (support.prefix) {
       notes.push({
-        icon: writeIcon(strings, 'prefix', support.prefix),
+        icon: processIcon(strings, 'prefix', support.prefix),
         text: strings['bc_icon_title_prefix'].replace('$1$', support.prefix)
       });
     }
@@ -541,13 +529,13 @@ function writeNotes (strings, support, browserId, legendItems) {
       if (Array.isArray(support.notes)) {
         for (let note of support.notes) {
           notes.push({
-            icon: writeIcon(strings, 'footnote'),
+            icon: processIcon(strings, 'footnote'),
             text: note
           });
         }
       } else {
         notes.push({
-          icon: writeIcon(strings, 'footnote'),
+          icon: processIcon(strings, 'footnote'),
           text: support.notes
         });
       }
@@ -555,31 +543,26 @@ function writeNotes (strings, support, browserId, legendItems) {
 
     if (support.alternative_name) {
       notes.push({
-        icon: writeIcon(strings, 'altname', support.alternative_name),
+        icon: processIcon(strings, 'altname', support.alternative_name),
         text: strings['bc_icon_title_altname'].replace('$1$', support.alternative_name)
       });
     }
 
     if (support.flags) {
       notes.push({
-        icon: writeIcon(strings, 'disabled'),
-        text: writeFlagsNote(support, browserId)
+        icon: processIcon(strings, 'disabled'),
+        text: processFlagsNote(support, browserId)
       });
     }
 
+    let output = {
+      header
+    };
     if (notes.length > 0) {
-      for (let note of notes) {
-        output += '<dd>';
-        output += note.icon;
-        output += ' ' + note.text;
-        output += '</dd>';
-      }
-    } else {
-      output += '<dd></dd>';
+      output.content = notes;
     }
-  }
-
-  output += '</dl></section>';
+    return output;
+  };
 
   return output;
 }
@@ -591,22 +574,22 @@ an identifier for the row,  like "Basic support".
 
 */
 function processFeatureSupport (strings, supportData, displayBrowers, legendItems) {
-  let output = '';
+  let output = [];
 
   for (let browserNameKey of displayBrowers) {
     let needsNotes = false;
     let support = supportData[browserNameKey];
-    let supportInfo = '';
+    let supportInfo;
     if (support) {
       if (Array.isArray(support)) {
         // Take first support data
-        supportInfo += getCellString(strings,
+        supportInfo = getCellString(strings,
           support[0].version_added,
           support[0].version_removed,
           support[0].partial_implementation);
         needsNotes = true;
       } else {
-        supportInfo += getCellString(strings,
+        supportInfo = getCellString(strings,
           support.version_added,
           support.version_removed,
           support.partial_implementation);
@@ -615,24 +598,23 @@ function processFeatureSupport (strings, supportData, displayBrowers, legendItem
         }
       }
     } else { // browsers are optional in the data, display them as "?" in our table
-      supportInfo += getCellString(strings, null);
+      supportInfo = getCellString(strings, null);
     }
 
-    let supportClass = getSupportClass(support);
-    output += `<td class="bc-supports-${supportClass} bc-browser-${browserNameKey}`;
-    legendItems.add('support_' + supportClass);
-
+    let obj = {
+      browser: {
+        id: browserNameKey
+      },
+      class: getSupportClass(support),
+      info: supportInfo,
+      needsNotes: needsNotes
+    };
+    legendItems.add('support_' + obj.class);
     if (needsNotes) {
-      output += ' bc-has-history';
+      obj.icons = processCellIcons(strings, support, legendItems);
+      obj.notes = processNotes(strings, support, browserNameKey, legendItems);
     }
-
-    output += `">${supportInfo}`;
-
-    if (needsNotes) {
-      output += writeCellIcons(strings, support, legendItems);
-      output += writeNotes(strings, support, browserNameKey, legendItems);
-    }
-    output += '</td>';
+    output.push(obj);
   }
 
   return output;
