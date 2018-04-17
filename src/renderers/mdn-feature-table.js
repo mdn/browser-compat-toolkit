@@ -79,7 +79,7 @@ function render (compatData, configuration) {
       platforms: processPlatforms(strings, platforms),
       browsers: processBrowsers(strings, displayBrowers),
       features: processFeatures(strings, features, forMDNURL, displayBrowers, legendItems, bcCategory),
-      //output += writeLegend(strings, legendItems)
+      legend: processLegend(strings, legendItems)
     });
   } else {
     let errString = strings['no_data_found'].replace('${query}', query).replace('${depth}', depth);
@@ -176,26 +176,6 @@ function processIcon (strings, iconSlug, replacer, isLegend = false) {
   if (output.title === 'bc_icon_title_' + iconSlug) {
     output.title = output.name;
   }
-  return output;
-}
-
-/* Write a icon with localized hover text */
-function writeIcon (strings, iconSlug, replacer, isLegend) {
-  let iconName = stringOrKey(strings, 'bc_icon_name_' + iconSlug).replace('$1$', replacer);
-  let iconTitle = stringOrKey(strings, 'bc_icon_title_' + iconSlug).replace('$1$', replacer);
-  if (isLegend) {
-    iconName = strings['legend_' + iconSlug];
-    iconTitle = iconName;
-  }
-  // there is no iconTitle, fall back to iconName
-  if (iconTitle === 'bc_icon_title_' + iconSlug) {
-    iconTitle = iconName;
-  }
-  let output = '';
-  output += `<abbr class="only-icon" title="${iconTitle}">`;
-  output += `<span>${iconName}</span>`;
-  output += `<i aria-hidden="true" class="ic-${iconSlug}"></i>`;
-  output += '</abbr>';
   return output;
 }
 
@@ -620,11 +600,7 @@ function processFeatureSupport (strings, supportData, displayBrowers, legendItem
   return output;
 }
 
-function writeLegend (strings, legendItems) {
-  let output = '<section class="bc-legend">';
-  output += `<h3 class="offscreen">${strings['legend']}</h3>`;
-  output += '<dl>';
-
+function processLegend (strings, legendItems) {
   let sortOrder = ['support_yes', 'support_partial', 'support_no', 'support_unknown',
     'experimental', 'non-standard', 'deprecated',
     'footnote', 'disabled', 'altname', 'prefix'];
@@ -632,27 +608,26 @@ function writeLegend (strings, legendItems) {
     return sortOrder.indexOf(a) - sortOrder.indexOf(b);
   });
 
-  for (let item of sortedLegendItems) {
-    // handle supprt cells
-    if (item.indexOf('support_') !== -1) {
-      let supportType = item.substring(item.indexOf('_') + 1);
-      output += `<dt><span class="bc-supports-${supportType} bc-supports">
-                 <abbr title="${strings['supportsLong_' + supportType]}"
-                 class="bc-level bc-level-${supportType} only-icon">
-                 <span>${strings['supportsLong_' + supportType]}</span>
-                 &nbsp;
-                </abbr></span></dt>`;
-      output += `<dd>${strings['supportsLong_' + supportType]}</dd>`;
-    // handle icons
+  let items = [];
+  for (let itemName of sortedLegendItems) {
+    let item = {};
+    if (itemName.startsWith('support_')) {
+      // handle support cells
+      let supportType = itemName.substring(itemName.indexOf('_') + 1);
+      item.support = supportType;
+      item.title = strings['supportsLong_' + supportType];
     } else {
-      output += `<dt>${writeIcon(strings, item, '', true)}</dt>`;
-      output += `<dd>${strings['legend_' + item]}</dd>`;
+      // handle icons
+      item.icon = processIcon(strings, itemName, '', true);
+      item.title = strings['legend_' + itemName];
     }
+    items.push(item);
   }
 
-  output += '</dl>';
-  output += '</section>';
-  return output;
+  return {
+    title: strings['legend'],
+    items
+  };
 }
 
 module.exports = render;

@@ -96,28 +96,25 @@
 
 	<!-- Write compat table legend -->
 	<section class="bc-legend">
-		<h3 class="offscreen">{{ legend.id }}</h3>
+		<h3 class="offscreen">{{ legend.title }}</h3>
 		<dl>
 			{%- for item in legend.items %}
 			{%- if item.support %}
 			<dt>
-				<span class="bc-supports-{{ item.support.type }} bc-supports">
-					<abbr title="{{ item.support.title }}" class="bc-level bc-level-{{ item.support.type }} only-icon">
-						<span>{{ item.support.title }}</span>
+				<span class="bc-supports-{{ item.support }} bc-supports">
+					<abbr title="{{ item.title }}" class="bc-level bc-level-{{ item.support }} only-icon">
+						<span>{{ item.title | safe }}</span>
 						&nbsp;
 					</abbr>
 				</span>
 			</dt>
-			<dd>{{ legend.item.support.title }}</dd>
+			<dd>{{ item.title | safe }}</dd>
 			{%- else %}
 			<dt>
-				<!--call writeIcon(strings, item, '', true) -->
-				<<abbr title="{{ item.icon.name }}" class="only-icon">
-					<span>{{ legend.item.icon.name }}</span>
-					<i aria-hidden="true" class="ic-{{ item.icon.id }}"></i>
-				</abbr>
+				{%- set icon=item.icon %}
+				{%- include "./icon.html" %}
 			</dt>
-			<dd>{{ item.title }}</dd>
+			<dd>{{ item.title | safe }}</dd>
 			{%- endif %}
 			{%- endfor %}
 		</dl>
