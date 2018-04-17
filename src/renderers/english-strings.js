@@ -54,4 +54,4 @@ module.exports = {
   'supportsShort_yes': 'Yes',
   'supportsShort_yes_title': 'Please update this with the earliest version of support.',
   'no_data_found': 'No compatibility data found. Please contribute data for "${query}" (depth: ${depth}) to the <a href="https://github.com/mdn/browser-compat-data">MDN compatibility data repository</a>.'
-}
+};
