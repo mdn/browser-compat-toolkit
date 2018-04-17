@@ -76,7 +76,8 @@ function render (compatData, configuration) {
   if (features.length > 0) {
     output = nunjucks.render('src/templates/table.html', {
       category: bcCategory,
-      //output += writeCompatHead(strings, platforms, displayBrowers)
+      platforms: processPlatforms(strings, platforms),
+      browsers: processBrowsers(strings, displayBrowers),
       //output += writeCompatBody(strings, features, forMDNURL, displayBrowers, legendItems, bcCategory)
       //output += writeLegend(strings, legendItems)
     });
@@ -109,39 +110,27 @@ function traverseFeatures (obj, depth, identifier, features) {
 /*
  * Rendering functions!
  */
-function writeCompatHead (strings, platforms, displayBrowers) {
-  let output = '<thead>';
-  output += writeCompatPlatformsRow(strings, platforms);
-  output += writeCompatBrowsersRow(strings, displayBrowers);
-  output += '</thead>';
-  return output;
-}
-
-function writeCompatPlatformsRow (strings, platforms) {
-  let output = '<tr class="bc-platforms">';
-  output += '<td></td>';
-
+function processPlatforms (strings, platforms) {
+  let output = [];
   for (let platform of platforms) {
-    let platformCount = Object.keys(browsers[platform]).length;
-    let platformId = platform.replace('webextensions-', '');
-    output += `<th colspan="${platformCount}" class="bc-platform-${platformId}">`;
-    output += writeIcon(strings, platformId);
-    output += '</th>';
+    const id = platform.replace('webextensions-', '');
+    output.push({
+      id,
+      count: Object.keys(browsers[platform]).length,
+      icon: processIcon(strings, id)
+    });
   }
-
-  output += '</tr>';
   return output;
 }
 
-function writeCompatBrowsersRow (strings, displayBrowers) {
-  let output = '<tr class="bc-browsers">';
-  output += '<td></td>';
+function processBrowsers (strings, displayBrowers) {
+  let output = [];
   for (let browser of displayBrowers) {
-    output += `<th class="bc-browser-${browser}">`;
-    output += writeIcon(strings, browser);
-    output += '</th>';
+    output.push({
+      id: browser,
+      icon: processIcon(strings, browser)
+    });
   }
-  output += '</tr>';
   return output;
 }
 
@@ -160,6 +149,39 @@ function writeCompatFeatureRow (strings, features, forMDNURL, displayBrowers, le
     output += `<th scope="row">${writeFeatureName(strings, row, feature, forMDNURL, legendItems, bcCategory)}</th>`;
     output += `${writeCompatCells(strings, feature.support, displayBrowers, legendItems)}`;
     output += '</tr>';
+  }
+  return output;
+}
+
+/**
+ * Write icon with localized hover text
+ *
+ * @param {String[]} strings
+ * @param {String} iconSlug
+ * @param {String} [replacer]
+ * @param {Boolean} [isLegend=false]
+ *
+ * @return {nm$_mdn-feature-table.processIcon.output}
+ */
+function processIcon (strings, iconSlug, replacer, isLegend = false) {
+  /**
+   * @type Object
+   * @property {String} name The icon name
+   * @property {String} id The icon ID
+   * @property {String} title The icon title
+   */
+  let output = {
+    name: stringOrKey(strings, 'bc_icon_name_' + iconSlug).replace('$1$', replacer),
+    id: iconSlug,
+    title: stringOrKey(strings, 'bc_icon_title_' + iconSlug).replace('$1$', replacer)
+  };
+  if (isLegend) {
+    output.name = strings['legend_' + iconSlug];
+    output.title = output.name;
+  }
+  // there is no iconTitle, fall back to iconName
+  if (output.title === 'bc_icon_title_' + iconSlug) {
+    output.title = output.name;
   }
   return output;
 }
