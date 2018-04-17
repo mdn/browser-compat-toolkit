@@ -1,0 +1,85 @@
+<!-- Compat table global structure -->
+<div class="bc-data hidden">
+	<table class="bc-table bc-table-{{ category }}">
+		<!-- Write compat table header -->
+		<thead>
+			<!-- Write compat platform row -->
+			<tr class="bc-platforms">
+				<td></td>
+				{%- for platform in platforms %}
+				<th colspan="{{ platform.count }}" class="bc-platform-{{ platform.id }}">
+					<abbr class="only-icon" title="{{ platform.icon.title }}">
+						<span>{{ platform.icon.name }}</span>
+						<i aria-hidden="true" class="ic-{{ platform.icon.id }}"></i>
+					</abbr>
+				</th>
+				{%- endfor %}
+			</tr>
+			<!-- Write compat browsers row -->
+			<tr class="bc-browsers">
+				<td></td>
+				{%- for browser in browsers %}
+				<th class="bc-browser-{{ browser.id }}">
+					<abbr class="only-icon" title="{{ browser.icon.title }}">
+						<span>{{ browser.icon.name }}</span>
+						<i aria-hidden="true" class="ic-{{ browser.icon.id }}"></i>
+					</abbr>
+				</th>
+				{%- endfor %}
+			</tr>
+		</thead>
+
+		<!-- Write compat table body -->
+		<tbody>
+			{%- for feature in features %}
+			<tr>
+				<th scope="row">
+					<!-- call function writeFeatureName (strings, row, feature, forMDNURL, legendItems) -->
+				</th>
+				<!-- call writeCompatCells(strings, feature.support, displayBrowsers, legendItems) -->
+				{%- for browser in displayBrowsers %}
+				<td class="bc-supports-{{ feature.support.class }} bc-browser-{{ browser.name }}
+					{%- if feature.needsNote %} bc-has-history{% endif %}">
+					{{ browser.support.info }}
+
+					{%- if feature.needsNote %}
+					<!-- writeCompatCells: 616 -->
+					<!-- call writeCellIcons(strings, support, legendItems) -->
+					<!-- call writeNotes(strings, support, browserNameKey, legendItems) -->
+					{%- endif %}
+				</td>
+				{%- endfor %}
+			</tr>
+			{%- endfor %}
+		</tbody>
+	</table>
+
+	<!-- call writeLegend(strings, legendItems) -->
+	<section class="bc-legend">
+		<h3 class="offscreen">{{ legend.id }}</h3>
+		<dl>
+			{%- for item in legend.items %}
+			{%- if item.support %}
+			<dt>
+				<span class="bc-supports-{{ item.support.type }} bc-supports">
+					<abbr title="{{ item.support.title }}" class="bc-level bc-level-{{ item.support.type }} only-icon">
+						<span>{{ item.support.title }}</span>
+						&nbsp;
+					</abbr>
+				</span>
+			</dt>
+			<dd>{{ legend.item.support.title }}</dd>
+			{%- else %}
+			<dt>
+				<!--call writeIcon(strings, item, '', true) -->
+				<<abbr title="{{ item.icon.name }}" class="only-icon">
+					<span>{{ legend.item.icon.name }}</span>
+					<i aria-hidden="true" class="ic-{{ item.icon.id }}"></i>
+				</abbr>
+			</dt>
+			<dd>{{ item.title }}</dd>
+			{%- endif %}
+			{%- endfor %}
+		</dl>
+	</section>
+</div>
