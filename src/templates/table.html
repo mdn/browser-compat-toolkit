@@ -8,10 +8,8 @@
 				<td></td>
 				{%- for platform in platforms %}
 				<th colspan="{{ platform.count }}" class="bc-platform-{{ platform.id }}">
-					<abbr class="only-icon" title="{{ platform.icon.title }}">
-						<span>{{ platform.icon.name }}</span>
-						<i aria-hidden="true" class="ic-{{ platform.icon.id }}"></i>
-					</abbr>
+					{%- set icon=platform.icon %}
+					{%- include "./icon.html" %}
 				</th>
 				{%- endfor %}
 			</tr>
@@ -20,10 +18,8 @@
 				<td></td>
 				{%- for browser in browsers %}
 				<th class="bc-browser-{{ browser.id }}">
-					<abbr class="only-icon" title="{{ browser.icon.title }}">
-						<span>{{ browser.icon.name }}</span>
-						<i aria-hidden="true" class="ic-{{ browser.icon.id }}"></i>
-					</abbr>
+					{%- set icon=browser.icon %}
+					{%- include "./icon.html" %}
 				</th>
 				{%- endfor %}
 			</tr>
@@ -34,7 +30,20 @@
 			{%- for feature in features %}
 			<tr>
 				<th scope="row">
-					<!-- call function writeFeatureName (strings, row, feature, forMDNURL, legendItems) -->
+					{%- if feature.header.href %}
+					<a href="{{ feature.header.href }}">
+						{% endif -%}
+						{{ feature.header.name | safe }}
+						{%- if feature.header.href %}
+					</a>
+					{%- endif %}
+					{%- if feature.header.icons %}
+					<div class="bc-icons">
+						{%- for icon in feature.header.icons %}
+						{%- include "./icon.html" %}
+						{%- endfor %}
+					</div>
+					{%- endif %}
 				</th>
 				<!-- call writeCompatCells(strings, feature.support, displayBrowsers, legendItems) -->
 				{%- for browser in displayBrowsers %}

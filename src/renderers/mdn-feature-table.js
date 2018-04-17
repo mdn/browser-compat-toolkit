@@ -78,7 +78,7 @@ function render (compatData, configuration) {
       category: bcCategory,
       platforms: processPlatforms(strings, platforms),
       browsers: processBrowsers(strings, displayBrowers),
-      //output += writeCompatBody(strings, features, forMDNURL, displayBrowers, legendItems, bcCategory)
+      features: processFeatures(strings, features, forMDNURL, displayBrowers, legendItems, bcCategory),
       //output += writeLegend(strings, legendItems)
     });
   } else {
@@ -134,21 +134,14 @@ function processBrowsers (strings, displayBrowers) {
   return output;
 }
 
-function writeCompatBody (strings, features, forMDNURL, displayBrowers, legendItems, bcCategory) {
-  let output = '<tbody>';
-  output += writeCompatFeatureRow(strings, features, forMDNURL, displayBrowers, legendItems, bcCategory);
-  output += '</tbody>';
-  return output;
-}
-
-function writeCompatFeatureRow (strings, features, forMDNURL, displayBrowers, legendItems, bcCategory) {
-  let output = '';
-  for (let row of features) {
-    output += '<tr>';
-    let feature = Object.keys(row).map((k) => row[k])[0];
-    output += `<th scope="row">${writeFeatureName(strings, row, feature, forMDNURL, legendItems, bcCategory)}</th>`;
-    output += `${writeCompatCells(strings, feature.support, displayBrowers, legendItems)}`;
-    output += '</tr>';
+function processFeatures (strings, features, forMDNURL, displayBrowers, legendItems, bcCategory) {
+  let output = [];
+  for (const row of features) {
+    const feature = Object.keys(row).map((k) => row[k])[0];
+    output.push({
+      header: processFeatureHeader(strings, row, feature, forMDNURL, legendItems, bcCategory),
+      support: processFeatureSupport(strings, feature.support, displayBrowers, legendItems)
+    });
   }
   return output;
 }
@@ -206,24 +199,22 @@ function writeIcon (strings, iconSlug, replacer, isLegend) {
   return output;
 }
 
-function writeFeatureName (strings, row, feature, forMDNURL, legendItems, bcCategory) {
-  let desc = '';
-  let featureIcons = '';
-  let experimentalIcon = '';
-  let deprecatedIcon = '';
-  let nonStandardIcon = '';
+function processFeatureHeader (strings, row, feature, forMDNURL, legendItems, bcCategory) {
   let label = Object.keys(row)[0];
+  let output = {
+    name: ''
+  };
 
   if (feature.description) {
     // Basic support or unnested features need no prefixing
     if (label.indexOf('.') === -1) {
-      desc += feature.description;
+      output.name = feature.description;
       // otherwise add a prefix so that we know where this belongs to (e.g. "parse: ISO 8601 format")
     } else {
-      desc += `<code>${label.slice(0, label.lastIndexOf('.'))}</code>: ${feature.description}`;
+      output.name = `<code>${label.slice(0, label.lastIndexOf('.'))}</code>: ${feature.description}`;
     }
   } else {
-    desc += `<code>${Object.keys(row)[0]}</code>`;
+    output.name = `<code>${Object.keys(row)[0]}</code>`;
   }
   if (feature.mdn_url) {
     let href = feature.mdn_url;
@@ -241,32 +232,32 @@ function writeFeatureName (strings, row, feature, forMDNURL, legendItems, bcCate
       }
     }
     if (href !== '') {
-      desc = `<a href="${href}">${desc}</a>`;
+      output.href = href;
     }
   }
 
   if (feature.hasOwnProperty('status')) {
+    let featureIcons;
     if (feature.status.experimental === true) {
-      experimentalIcon = writeIcon(strings, 'experimental');
+      featureIcons = featureIcons || [];
+      featureIcons.push(processIcon(strings, 'experimental'));
       legendItems.add('experimental');
     }
     if (feature.status.deprecated === true) {
-      deprecatedIcon = writeIcon(strings, 'deprecated', strings['bc_icon_title_deprecated_' + (bcCategory === 'ext' ? 'ext' : 'web')]);
+      featureIcons = featureIcons || [];
+      featureIcons.push(processIcon(strings, 'deprecated', strings['bc_icon_title_deprecated_' + (bcCategory === 'ext' ? 'ext' : 'web')]));
       legendItems.add('deprecated');
     }
     if (feature.status.standard_track === false) {
-      nonStandardIcon = writeIcon(strings, 'non-standard');
+      featureIcons = featureIcons || [];
+      featureIcons.push(processIcon(strings, 'non-standard'));
       legendItems.add('non-standard');
     }
-    if (experimentalIcon || deprecatedIcon || nonStandardIcon) {
-      featureIcons += ' <div class="bc-icons">';
-      featureIcons += experimentalIcon;
-      featureIcons += deprecatedIcon;
-      featureIcons += nonStandardIcon;
-      featureIcons += '</div>';
+    if (featureIcons) {
+      output.icons = featureIcons;
     }
   }
-  return desc + featureIcons;
+  return output;
 }
 
 /* Use the key if no string is defined */
@@ -599,7 +590,7 @@ For a single row, write all the cells that contain support data.
 an identifier for the row,  like "Basic support".
 
 */
-function writeCompatCells (strings, supportData, displayBrowers, legendItems) {
+function processFeatureSupport (strings, supportData, displayBrowers, legendItems) {
   let output = '';
 
   for (let browserNameKey of displayBrowers) {
