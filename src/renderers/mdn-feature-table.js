@@ -76,7 +76,7 @@ function render (compatData, configuration) {
     output = '<div class="bc-data hidden">'
     output += `<table class="bc-table bc-table-${bcCategory}">`
     output += writeCompatHead(strings, platforms, displayBrowers)
-    output += writeCompatBody(strings, features, forMDNURL, displayBrowers, legendItems)
+    output += writeCompatBody(strings, features, forMDNURL, displayBrowers, legendItems, bcCategory)
     output += '</table>'
     output += writeLegend(strings, legendItems)
 
@@ -146,19 +146,19 @@ function writeCompatBrowsersRow (strings, displayBrowers) {
   return output
 }
 
-function writeCompatBody (strings, features, forMDNURL, displayBrowers, legendItems) {
+function writeCompatBody (strings, features, forMDNURL, displayBrowers, legendItems, bcCategory) {
   let output = '<tbody>'
-  output += writeCompatFeatureRow(strings, features, forMDNURL, displayBrowers, legendItems)
+  output += writeCompatFeatureRow(strings, features, forMDNURL, displayBrowers, legendItems, bcCategory)
   output += '</tbody>'
   return output
 }
 
-function writeCompatFeatureRow (strings, features, forMDNURL, displayBrowers, legendItems) {
+function writeCompatFeatureRow (strings, features, forMDNURL, displayBrowers, legendItems, bcCategory) {
   let output = ''
   for (let row of features) {
     output += '<tr>'
     let feature = Object.keys(row).map((k) => row[k])[0]
-    output += `<th scope="row">${writeFeatureName(strings, row, feature, forMDNURL, legendItems)}</th>`
+    output += `<th scope="row">${writeFeatureName(strings, row, feature, forMDNURL, legendItems, bcCategory)}</th>`
     output += `${writeCompatCells(strings, feature.support, displayBrowers, legendItems)}`
     output += '</tr>'
   }
@@ -185,7 +185,7 @@ function writeIcon (strings, iconSlug, replacer, isLegend) {
   return output
 }
 
-function writeFeatureName (strings, row, feature, forMDNURL, legendItems) {
+function writeFeatureName (strings, row, feature, forMDNURL, legendItems, bcCategory) {
   let desc = ''
   let featureIcons = ''
   let experimentalIcon = ''
@@ -210,9 +210,13 @@ function writeFeatureName (strings, row, feature, forMDNURL, legendItems) {
       // Convert to relative MDN url
       href = feature.mdn_url.replace('https://developer.mozilla.org', '')
       let mdnSlug = forMDNURL.split('/docs/')[1]
-      if (href === '/docs/' + mdnSlug) {
+      if (href.split('#')[0] === '/docs/' + mdnSlug) {
         // Don't link to the current page
-        href = ''
+        let anchor = ''
+        if (feature.mdn_url.includes('#')) {
+          anchor = feature.mdn_url.substring(feature.mdn_url.indexOf('#'))
+        }
+        href = anchor
       }
     }
     if (href !== '') {
@@ -226,7 +230,7 @@ function writeFeatureName (strings, row, feature, forMDNURL, legendItems) {
       legendItems.add('experimental')
     }
     if (feature.status.deprecated === true) {
-      deprecatedIcon = writeIcon(strings, 'deprecated')
+      deprecatedIcon = writeIcon(strings, 'deprecated', strings['bc_icon_title_deprecated_' + (bcCategory === 'ext' ? 'ext' : 'web')])
       legendItems.add('deprecated')
     }
     if (feature.status.standard_track === false) {
