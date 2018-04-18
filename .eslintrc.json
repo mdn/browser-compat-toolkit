@@ -5,6 +5,6 @@
     },
     "rules": {
         "no-template-curly-in-string": "warn",
-		"semi": ["error", "always"]
+        "semi": ["error", "always"]
     }
 }

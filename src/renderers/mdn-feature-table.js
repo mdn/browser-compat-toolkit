@@ -346,43 +346,43 @@ function getSupportClass (supportInfo) {
   return cssClass;
 }
 
-/*
-Generate the note for a browser flag or preference
-First checks version_added and version_removed to create a string indicating when
-a preference setting is present. Then creates a (browser specific) string
-for either a preference flag or a compile flag.
+/**
+ * Generate the note for a browser flag or preference
+ * First checks version_added and version_removed to create a string indicating when
+ * a preference setting is present. Then creates a (browser specific) string
+ * for either a preference flag or a compile flag.
+ *
+ * @param {Object} strings contains localized strings
+ * @param {Object} supportData is a support_statement
+ * @param {Object} browserId is a compat_block browser ID
+ *
+ * @return {String} The note for the flags information.
+ */
+function processFlagsNote (strings, supportData, browserId) {
+  // TODO: Should these be somewhere else?
+  const firefoxPrefs = 'about:config';
+  const chromePrefs = 'chrome://flags';
 
-// TODO Need to localize this
-
-`supportData` is a support_statement
-`browserId` is a compat_block browser ID
-*/
-function processFlagsNote (supportData, browserId) {
-  let output = '';
-
-  const firefoxPrefs = ' To change preferences in Firefox, visit about:config.';
-  const chromePrefs = ' To change preferences in Chrome, visit chrome://flags.';
-
+  let support = '';
   if (typeof (supportData.version_added) === 'string') {
-    output = `From version ${supportData.version_added}`;
+    support = strings['flag_support_start'];
+    support = support.replace('${versionAdded}', supportData.version_added);
   }
 
   if (typeof (supportData.version_removed) === 'string') {
-    if (output) {
-      output += ' ';
-      output += `until version ${supportData.version_removed} (exclusive)`;
+    if (support) {
+      support = strings['flag_support_range'];
+      support = support.replace('${versionAdded}', supportData.version_added);
     } else {
-      output = `Until version ${supportData.version_removed} (exclusive)`;
+      support = strings['flag_support_end'];
     }
+    support = support.replace('${versionRemoved}', supportData.version_removed);
   }
 
-  let start = 'This';
-  if (output) {
-    output += ':';
-    start = ' this';
+  let start = strings['flag_start'];
+  if (support) {
+    start = strings['flag_start_cont'].replace('${support}', support);
   }
-
-  start += ' feature is behind the ';
 
   let flagsText = '';
   let settings = '';
@@ -394,44 +394,37 @@ function processFlagsNote (supportData, browserId) {
     // value_to_set is optional
     let valueToSet = '';
     if (flag.value_to_set) {
-      valueToSet = ` (needs to be set to <code>${flag.value_to_set}</code>)`;
+      valueToSet = strings['flag_valueToSet'].replace('${valueToSet}', flag.value_to_set);
     }
 
-    let typeString = '';
+    let typeString = stringOrKey(strings, `flag_type_${flag.type}`).replace('${valueToSet}', valueToSet);
     if (flag.type === 'preference') {
+      settings = strings['flag_browser'];
       switch (browserId) {
         case 'firefox':
         case 'firefox_android':
-          settings = firefoxPrefs;
+          settings = settings.replace('${browser}', stringOrKey(strings, `bc_icon_name_firefox`)).replace('${url}', firefoxPrefs);
           break;
         case 'chrome':
         case 'chrome_android':
-          settings = chromePrefs;
+          settings = settings.replace('${browser}', stringOrKey(strings, `bc_icon_name_chrome`)).replace('${url}', chromePrefs);
+          break;
+        default:
+          settings = '';
           break;
       }
-      typeString = ` preference${valueToSet}`;
-    }
-
-    if (flag.type === 'compile_flag') {
-      typeString = ` compile flag${valueToSet}`;
-    }
-
-    if (flag.type === 'runtime_flag') {
-      typeString = ` runtime flag${valueToSet}`;
     }
 
     flagsText += nameString + typeString;
 
     if (i !== supportData.flags.length - 1) {
-      flagsText += ' and the ';
+      flagsText += strings['flag_misc_joiner'];
     } else {
-      flagsText += '.';
+      flagsText += strings['flag_misc_end'];
     }
   }
 
-  output += start + flagsText + settings;
-
-  return output;
+  return (start + flagsText + settings);
 }
 
 /*
@@ -531,7 +524,7 @@ function processNotes (strings, support, browserId, legendItems) {
     if (support.flags) {
       notes.push({
         icon: processIcon(strings, 'disabled'),
-        text: processFlagsNote(support, browserId)
+        text: processFlagsNote(strings, support, browserId)
       });
     }
 
