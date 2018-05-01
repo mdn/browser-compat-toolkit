@@ -1,3 +1,5 @@
+{%- import "./macros.html" as macros -%}
+
 <!-- Compat table global structure -->
 <div class="bc-data hidden">
 	<table class="bc-table bc-table-{{ category }}">
@@ -8,8 +10,7 @@
 				<td></td>
 				{%- for platform in platforms %}
 				<th colspan="{{ platform.count }}" class="bc-platform-{{ platform.id }}">
-					{%- set icon=platform.icon %}
-					{%- include "./icon.html" %}
+					{{- macros.icon(platform.icon) }}
 				</th>
 				{%- endfor %}
 			</tr>
@@ -18,8 +19,7 @@
 				<td></td>
 				{%- for browser in browsers %}
 				<th class="bc-browser-{{ browser.id }}">
-					{%- set icon=browser.icon %}
-					{%- include "./icon.html" %}
+					{{- macros.icon(browser.icon) }}
 				</th>
 				{%- endfor %}
 			</tr>
@@ -40,7 +40,7 @@
 					{%- if feature.header.icons %}
 					<div class="bc-icons">
 						{%- for icon in feature.header.icons %}
-						{%- include "./icon.html" %}
+						{{- macros.icon(icon) }}
 						{%- endfor %}
 					</div>
 					{%- endif %}
@@ -48,12 +48,11 @@
 				{%- for support in feature.support %}
 				<td class="bc-supports-{{ support.class }} bc-browser-{{ support.browser.id }}
 					{%- if support.needsNote %} bc-has-history{% endif %}">
-					{%- set support_info=support.info %}
-					{%- include "./support.html" %}
+					{{- macros.support(support.info) }}
 					{%- if support.icons %}
 					<div class="bc-icons">
 						{%- for icon in support.icons %}
-						{%- include "./icon.html" %}
+						{{- macros.icon(icon) }}
 						{%- endfor %}
 					</div>
 					{%- endif %}
@@ -63,12 +62,11 @@
 							{%- if support.notes %}
 							{%- for note in support.notes %}
 							<dt class="bc-supports-{{ note.header.class }} bc-supports">
-								{%- set support_info=note.header.info %}
-								{%- include "./support.html" %}
+								{{- macros.support(note.header.info) }}
 								{%- if note.header.icons %}
 								<div class="bc-icons">
 									{%- for icon in note.header.icons %}
-									{%- include "./icon.html" %}
+									{{- macros.icon(icon) }}
 									{%- endfor %}
 								</div>
 								{%- endif %}
@@ -76,8 +74,7 @@
 							{%- if note.content %}
 							<dd>
 								{%- for subnote in note.content %}
-								{%- set icon=subnote.icon %}
-								{%- include "./icon.html" %}
+								{{- macros.icon(subnote.icon) }}
 								{{ subnote.text | safe }}
 								{%- endfor %}
 							</dd>
@@ -111,8 +108,7 @@
 			<dd>{{ item.title | safe }}</dd>
 			{%- else %}
 			<dt>
-				{%- set icon=item.icon %}
-				{%- include "./icon.html" %}
+				{{- macros.icon(item.icon) }}
 			</dt>
 			<dd>{{ item.title | safe }}</dd>
 			{%- endif %}
