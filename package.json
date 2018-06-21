@@ -4,7 +4,7 @@
     "description": "Toolkit for visualizing and editing MDN's browser compatibility data",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "mocha test",
         "render": "node ./bin/render.js",
         "lint": "./node_modules/.bin/eslint --ignore-path .eslintignore src/*"
     },
@@ -27,13 +27,19 @@
     },
     "homepage": "https://github.com/mdn/browser-compat-toolkit",
     "devDependencies": {
+        "chai": "^4.1.2",
+        "chai-as-promised": "^7.1.1",
         "eslint": "^4.19.0",
         "eslint-config-standard": "^11.0.0",
         "eslint-plugin-import": "^2.9.0",
         "eslint-plugin-node": "^6.0.1",
         "eslint-plugin-promise": "^3.7.0",
         "eslint-plugin-standard": "^3.0.1",
+        "extend": "^3.0.1",
+        "jsdom": "^11.11.0",
         "mdn-browser-compat-data": "0.x",
+        "mocha": "^5.2.0",
+        "sinon": "^6.0.0",
         "webpack": "^4.1.1",
         "webpack-cli": "^2.0.12"
     }
