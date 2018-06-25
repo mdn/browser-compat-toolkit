@@ -9,7 +9,7 @@ const extend = require('extend')
 
 const jsdom = require('jsdom'); const {JSDOM} = jsdom
 const {assert} = require('chai')
-const {mdnFeatureTable} = require('../src/renderers')
+const {getData, renderers: {mdnFeatureTable}} = require('../src')
 
 const FIXTURE_DIR = path.resolve(__dirname, 'fixtures/mdn-feature-table')
 
@@ -28,9 +28,7 @@ const macro = (query, env = {}) => {
   if (env.slug) {
     forMDNURL = `https://developer.mozilla.org/docs/${env.slug}`
   }
-  return mdnFeatureTable(query.split('.').reduce((prev, curr) => {
-    return prev ? prev[curr] : undefined
-  }, fixtureCompatData), {query, forMDNURL})
+  return mdnFeatureTable(getData(query, fixtureCompatData), {query, forMDNURL})
 }
 
 describe('test "mdnFeatureTable"', () => {
