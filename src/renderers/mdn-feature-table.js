@@ -24,6 +24,7 @@ render(bcd.webextensions.api.alarms, {'query': 'webextensions.api.alarms'});
 // import * as defaultStrings from './english-strings'
 
 const defaultStrings = require('./english-strings')
+const viperHTML = require('viperhtml')
 
 const browsers = {
   'desktop': ['chrome', 'edge', 'firefox', 'ie', 'opera', 'safari'],
@@ -73,14 +74,14 @@ function render (compatData, configuration = {}) {
   traverseFeatures(compatData, depth, '', features)
 
   if (features.length > 0) {
-    output = '<div class="bc-data hidden">'
-    output += `<table class="bc-table bc-table-${bcCategory}">`
-    output += writeCompatHead(strings, platforms, displayBrowers)
-    output += writeCompatBody(strings, features, forMDNURL, displayBrowers, legendItems, bcCategory)
-    output += '</table>'
-    output += writeLegend(strings, legendItems)
-
-    output += '</div>'
+    output = String(viperHTML`
+<div class="bc-data hidden">
+  <table class="${`bc-table bc-table-${bcCategory}`}">
+    ${writeCompatHead(strings, platforms, displayBrowers)}
+    ${writeCompatBody(strings, features, forMDNURL, displayBrowers, legendItems, bcCategory)}
+  </table>
+  ${{html: writeLegend(strings, legendItems)}}
+</div>`)
   } else {
     let errString = strings['no_data_found'].replace('${query}', query).replace('${depth}', depth)
     output = errString
@@ -112,58 +113,53 @@ function traverseFeatures (obj, depth, identifier, features) {
  * Rendering functions!
  */
 function writeCompatHead (strings, platforms, displayBrowers) {
-  let output = '<thead>'
-  output += writeCompatPlatformsRow(strings, platforms)
-  output += writeCompatBrowsersRow(strings, displayBrowers)
-  output += '</thead>'
-  return output
+  return viperHTML`
+<thead>
+  ${writeCompatPlatformsRow(strings, platforms)}
+  ${writeCompatBrowsersRow(strings, displayBrowers)}
+</thead>`
 }
 
 function writeCompatPlatformsRow (strings, platforms) {
-  let output = '<tr class="bc-platforms">'
-  output += '<td></td>'
-
-  for (let platform of platforms) {
+  return viperHTML`
+<tr class="bc-platforms">
+  <td/>${platforms.map(platform => {
     let platformCount = Object.keys(browsers[platform]).length
     let platformId = platform.replace('webextensions-', '')
-    output += `<th colspan="${platformCount}" class="bc-platform-${platformId}">`
-    output += writeIcon(strings, platformId)
-    output += '</th>'
-  }
-
-  output += '</tr>'
-  return output
+    return viperHTML(platform)`
+  <th colspan="${platformCount}" class="${`bc-platform-${platformId}`}">
+    ${writeIcon(strings, platformId)}
+  </th>`
+  })}
+</tr>`
 }
 
 function writeCompatBrowsersRow (strings, displayBrowers) {
-  let output = '<tr class="bc-browsers">'
-  output += '<td></td>'
-  for (let browser of displayBrowers) {
-    output += `<th class="bc-browser-${browser}">`
-    output += writeIcon(strings, browser)
-    output += '</th>'
-  }
-  output += '</tr>'
-  return output
+  return viperHTML`
+<tr class="bc-browsers">
+  <td/>${displayBrowers.map(browser => viperHTML(browser)`
+  <th class="${`bc-browser-${browser}`}">
+    ${writeIcon(strings, browser)}
+  </th>`)}
+</tr>`
 }
 
 function writeCompatBody (strings, features, forMDNURL, displayBrowers, legendItems, bcCategory) {
-  let output = '<tbody>'
-  output += writeCompatFeatureRow(strings, features, forMDNURL, displayBrowers, legendItems, bcCategory)
-  output += '</tbody>'
-  return output
+  return viperHTML`
+<tbody>
+  ${writeCompatFeatureRow(strings, features, forMDNURL, displayBrowers, legendItems, bcCategory)}
+</tbody>`
 }
 
 function writeCompatFeatureRow (strings, features, forMDNURL, displayBrowers, legendItems, bcCategory) {
-  let output = ''
-  for (let row of features) {
-    output += '<tr>'
+  return features.map(row => {
     let feature = Object.keys(row).map((k) => row[k])[0]
-    output += `<th scope="row">${writeFeatureName(strings, row, feature, forMDNURL, legendItems, bcCategory)}</th>`
-    output += writeCompatCells(strings, feature.support, displayBrowers, legendItems)
-    output += '</tr>'
-  }
-  return output
+    return viperHTML`
+<tr>
+  <th scope="row">${writeFeatureName(strings, row, feature, forMDNURL, legendItems, bcCategory)}</th>
+  ${writeCompatCells(strings, feature.support, displayBrowers, legendItems)}
+</tr>`
+  })
 }
 
 /* Write a icon with localized hover text */
@@ -178,32 +174,31 @@ function writeIcon (strings, iconSlug, replacer, isLegend) {
   if (iconTitle === 'bc_icon_title_' + iconSlug) {
     iconTitle = iconName
   }
-  let output = ''
-  output += `<abbr class="only-icon" title="${iconTitle}">`
-  output += `<span>${iconName}</span>`
-  output += `<i aria-hidden="true" class="ic-${iconSlug}"></i>`
-  output += '</abbr>'
-  return output
+  return viperHTML(iconName)`\
+<abbr class="only-icon" title="${iconTitle}">\
+<span>${iconName}</span>\
+<i aria-hidden="true" class="${'ic-' + iconSlug}"/>\
+</abbr>`
 }
 
 function writeFeatureName (strings, row, feature, forMDNURL, legendItems, bcCategory) {
-  let desc = ''
-  let featureIcons = ''
-  let experimentalIcon = ''
-  let deprecatedIcon = ''
-  let nonStandardIcon = ''
+  let desc
+  let featureIcons
+  let experimentalIcon
+  let deprecatedIcon
+  let nonStandardIcon
   let label = Object.keys(row)[0]
 
   if (feature.description) {
     // Basic support or unnested features need no prefixing
     if (label.indexOf('.') === -1) {
-      desc += feature.description
+      desc = viperHTML`${{html: feature.description}}`
       // otherwise add a prefix so that we know where this belongs to (e.g. "parse: ISO 8601 format")
     } else {
-      desc += `<code>${label.slice(0, label.lastIndexOf('.'))}</code>: ${feature.description}`
+      desc = viperHTML`<code>${label.slice(0, label.lastIndexOf('.'))}</code>: ${{html: feature.description}}`
     }
   } else {
-    desc += `<code>${Object.keys(row)[0]}</code>`
+    desc = viperHTML`<code>${Object.keys(row)[0]}</code>`
   }
   if (feature.mdn_url) {
     let href = feature.mdn_url
@@ -221,7 +216,7 @@ function writeFeatureName (strings, row, feature, forMDNURL, legendItems, bcCate
       }
     }
     if (href !== '') {
-      desc = `<a href="${href}">${desc}</a>`
+      desc = viperHTML`<a href="${href}">${desc}</a>`
     }
   }
 
@@ -239,14 +234,15 @@ function writeFeatureName (strings, row, feature, forMDNURL, legendItems, bcCate
       legendItems.add('non-standard')
     }
     if (experimentalIcon || deprecatedIcon || nonStandardIcon) {
-      featureIcons += ' <div class="bc-icons">'
-      featureIcons += experimentalIcon
-      featureIcons += deprecatedIcon
-      featureIcons += nonStandardIcon
-      featureIcons += '</div>'
+      featureIcons = viperHTML`
+<div class="bc-icons">\
+${experimentalIcon}\
+${deprecatedIcon}\
+${nonStandardIcon}\
+</div>`
     }
   }
-  return desc + featureIcons
+  return viperHTML`${desc}${featureIcons}`
 }
 
 /* Use the key if no string is defined */
@@ -262,64 +258,60 @@ or the version number
 `partial` is either null, true, or false indicating partial_implementation
 */
 function getCellString (strings, added, removed, partial) {
-  let output = ''
+  let output
   switch (added) {
     case null:
-      output = `<abbr title="${strings['supportsShort_unknown_title']}">
+      output = viperHTML`
+              <abbr title="${strings['supportsShort_unknown_title']}">
                 ${strings['supportsShort_unknown']}
               </abbr>`
       break
     case true:
-      output = `<abbr title="${strings['supportsLong_yes']}"
+      output = viperHTML`<abbr title="${strings['supportsLong_yes']}"
                 class="bc-level-yes only-icon">
                 <span>${strings['supportsLong_yes']}</span>
-              </abbr>
-              ${strings['supportsShort_yes']}`
+              </abbr>${strings['supportsShort_yes']}`
       break
     case false:
-      output = `<abbr title="${strings['supportsLong_no']}"
+      output = viperHTML`<abbr title="${strings['supportsLong_no']}"
                 class="bc-level-no only-icon">
                 <span>${strings['supportsLong_no']}</span>
-              </abbr>
-              ${strings['supportsShort_no']}`
+              </abbr>${strings['supportsShort_no']}`
       break
     default:
-      output = `<abbr title="${strings['supportsLong_yes']}"
+      output = viperHTML`<abbr title="${strings['supportsLong_yes']}"
                 class="bc-level-yes only-icon">
                 <span>${strings['supportsLong_yes']}</span>
-              </abbr>
-              ${added}`
+              </abbr>${added}`
   }
   if (removed) {
-    output = `<abbr title="${strings['supportsLong_no']}"
+    output = viperHTML`<abbr title="${strings['supportsLong_no']}"
               class="bc-level-no only-icon">
               <span>${strings['supportsLong_no']}</span>
-            </abbr>`
+            </abbr>\
+${typeof (added) === 'boolean'
     // We don't know when supported started
-    if (typeof (added) === 'boolean' && added) {
-      output += '?'
-    } else { // We know when
-      output += added
-    }
-    output += '&nbsp;— '
+    ? '?'
+    // We know when
+    : added
+}&nbsp;— \
+${typeof (removed) === 'boolean'
     // We don't know when supported ended
-    if (typeof (removed) === 'boolean' && removed) {
-      output += '?'
-    } else { // We know when
-      output += removed
-    }
+    ? '?'
+    // We know when
+    : removed
+}`
     // removed wins over partial
   } else if (partial) {
-    output = `<abbr title="${strings['supportsLong_partial']}"
+    output = viperHTML`<abbr title="${strings['supportsLong_partial']}"
               class="bc-level-partial only-icon">
               <span>${strings['supportsLong_partial']}</span>
-            </abbr>`
+            </abbr>\
+${typeof (added) !== 'string'
     // Display "Partial" instead of "Yes", "No", or "?" if we have no version string
-    if (typeof (added) !== 'string') {
-      output += strings['supportsShort_partial']
-    } else {
-      output += added
-    }
+    ? strings['supportsShort_partial']
+    : added
+}`
   }
   return output
 }
@@ -408,7 +400,7 @@ function writeFlagsNote (strings, supportData, browserId) {
 
   for (let i = 0; i < supportData.flags.length; i++) {
     let flag = supportData.flags[i]
-    let nameString = `<code>${flag.name}</code>`
+    let nameString = viperHTML`<code>${flag.name}</code>`
 
     // value_to_set is optional
     let valueToSet = ''
@@ -443,7 +435,7 @@ function writeFlagsNote (strings, supportData, browserId) {
     }
   }
 
-  return (start + flagsText + settings)
+  return viperHTML`${{html: start}}${{html: flagsText}}${{html: settings}}`
 }
 
 /*
@@ -452,35 +444,36 @@ Generates icons for the main cell
 
 */
 function writeCellIcons (strings, support, legendItems) {
-  let output = '<div class="bc-icons">'
+  let output = []
 
   if (Array.isArray(support)) {
     // the first entry should be the most relevant/recent and will be used for the main cell
+    // TODO: Flatten the version support if applicable
     support = support[0]
   }
   if (support.prefix) {
-    output += writeIcon(strings, 'prefix', support.prefix) + ' '
+    output.push(writeIcon(strings, 'prefix', support.prefix))
     legendItems.add('prefix')
   }
 
   if (support.notes) {
-    output += writeIcon(strings, 'footnote') + ' '
+    output.push(writeIcon(strings, 'footnote'))
     legendItems.add('footnote')
   }
 
   if (support.alternative_name) {
-    output += writeIcon(strings, 'altname', support.alternative_name) + ' '
+    output.push(writeIcon(strings, 'altname', support.alternative_name))
     legendItems.add('altname')
   }
 
   if (support.flags) {
-    output += writeIcon(strings, 'disabled') + ' '
+    output.push(writeIcon(strings, 'disabled'))
     legendItems.add('disabled')
   }
 
-  output += '</div>'
-
-  return output
+  return viperHTML`<div class="bc-icons">
+        ${{html: output.join('\n        ')}}
+      </div>`
 }
 
 /*
@@ -491,26 +484,8 @@ Create notes section
 
 */
 function writeNotes (strings, support, browserId, legendItems) {
-  let output = '<section class="bc-history" aria-hidden="true"><dl>'
-
-  if (Array.isArray(support)) {
-    for (let supportItem of support) {
-      writeSingleNote(strings, supportItem, browserId, legendItems)
-    }
-  } else {
-    writeSingleNote(strings, support, browserId, legendItems)
-  }
-
   function writeSingleNote (strings, support, browserId, legendItems) {
     let notes = []
-
-    output += `<dt class="bc-supports-${getSupportClass(support)} bc-supports">`
-    output += getCellString(strings,
-      support.version_added,
-      support.version_removed,
-      support.partial_implementation)
-    output += writeCellIcons(strings, support, legendItems)
-    output += '</dt>'
 
     if (support.prefix) {
       notes.push({
@@ -549,21 +524,31 @@ function writeNotes (strings, support, browserId, legendItems) {
       })
     }
 
-    if (notes.length > 0) {
-      for (let note of notes) {
-        output += '<dd>'
-        output += note.icon
-        output += ' ' + note.text
-        output += '</dd>'
-      }
-    } else {
-      output += '<dd></dd>'
-    }
+    return viperHTML` <dt class="${`bc-supports-${getSupportClass(support)} bc-supports`}">
+      ${getCellString(strings,
+    support.version_added,
+    support.version_removed,
+    support.partial_implementation)}
+      ${writeCellIcons(strings, support, legendItems)}
+    </dt>
+    ${notes.length > 0
+    ? notes.map(note => viperHTML(note)`<dd>
+      ${note.icon}
+      ${{html: note.text}}
+    </dd>
+    `)
+    : viperHTML`<dd/>`}`
   }
 
-  output += '</dl></section>'
-
-  return output
+  return viperHTML`
+<section class="bc-history" aria-hidden="true">
+  <dl>
+    ${Array.isArray(support)
+    ? Array.from(support, supportItem => writeSingleNote(strings, supportItem, browserId, legendItems))
+    : writeSingleNote(strings, support, browserId, legendItems)}
+  </dl>
+</section>
+`
 }
 
 /*
@@ -573,58 +558,36 @@ an identifier for the row,  like "Basic support".
 
 */
 function writeCompatCells (strings, supportData, displayBrowers, legendItems) {
-  let output = ''
-
-  for (let browserNameKey of displayBrowers) {
+  return viperHTML`${displayBrowers.map(browserNameKey => {
     let needsNotes = false
     let support = supportData[browserNameKey]
-    let supportInfo = ''
+    let supportInfo
     if (support) {
-      if (Array.isArray(support)) {
-        // Take first support data
-        supportInfo += getCellString(strings,
-          support[0].version_added,
-          support[0].version_removed,
-          support[0].partial_implementation)
-        needsNotes = true
-      } else {
-        supportInfo += getCellString(strings,
-          support.version_added,
-          support.version_removed,
-          support.partial_implementation)
-        if (support.notes || support.prefix || support.flags || support.alternative_name) {
-          needsNotes = true
-        }
-      }
+      // Take first support data
+      let supportShort = Array.isArray(support) ? support[0] : support
+      supportInfo = getCellString(strings,
+        supportShort.version_added,
+        supportShort.version_removed,
+        supportShort.partial_implementation)
+      needsNotes = Array.isArray(support) ||
+        support.notes || support.prefix || support.flags || support.alternative_name
     } else { // browsers are optional in the data, display them as "?" in our table
-      supportInfo += getCellString(strings, null)
+      supportInfo = getCellString(strings, null)
     }
 
     let supportClass = getSupportClass(support)
-    output += `<td class="bc-supports-${supportClass} bc-browser-${browserNameKey}`
-    legendItems.add('support_' + supportClass)
-
-    if (needsNotes) {
-      output += ' bc-has-history'
-    }
-
-    output += `">${supportInfo}`
-
-    if (needsNotes) {
-      output += writeCellIcons(strings, support, legendItems)
-      output += writeNotes(strings, support, browserNameKey, legendItems)
-    }
-    output += '</td>'
-  }
-
-  return output
+    return viperHTML`<td class="${`bc-supports-${supportClass} bc-browser-${browserNameKey} ${needsNotes ? 'bc-has-history' : ''}`}">
+    ${supportInfo}
+    ${needsNotes ? [
+    writeCellIcons(strings, support, legendItems),
+    writeNotes(strings, support, browserNameKey, legendItems)
+  ] : undefined}
+  </td>
+  `
+  })}`
 }
 
 function writeLegend (strings, legendItems) {
-  let output = '<section class="bc-legend">'
-  output += `<h3 class="offscreen">${strings['legend']}</h3>`
-  output += '<dl>'
-
   let sortOrder = ['support_yes', 'support_partial', 'support_no', 'support_unknown',
     'experimental', 'non-standard', 'deprecated',
     'footnote', 'disabled', 'altname', 'prefix']
@@ -632,27 +595,30 @@ function writeLegend (strings, legendItems) {
     return sortOrder.indexOf(a) - sortOrder.indexOf(b)
   })
 
-  for (let item of sortedLegendItems) {
-    // handle supprt cells
+  return viperHTML`<section class="bc-legend">
+    <h3 class="offscreen">${strings['legend']}</h3>
+    <dl>
+      ${sortedLegendItems.map(item => {
     if (item.indexOf('support_') !== -1) {
       let supportType = item.substring(item.indexOf('_') + 1)
-      output += `<dt><span class="bc-supports-${supportType} bc-supports">
-                 <abbr title="${strings['supportsLong_' + supportType]}"
-                 class="bc-level bc-level-${supportType} only-icon">
-                 <span>${strings['supportsLong_' + supportType]}</span>
-                 &nbsp;
-                </abbr></span></dt>`
-      output += `<dd>${strings['supportsLong_' + supportType]}</dd>`
+      return viperHTML`<dt>
+        <span class="${`bc-supports-${supportType} bc-supports`}">
+          <abbr title="${strings['supportsLong_' + supportType]}" class="${`bc-level bc-level-${supportType} only-icon`}">
+            <span>${strings['supportsLong_' + supportType]}</span>&nbsp;
+          </abbr>
+        </span>
+      </dt>
+      <dd>${strings['supportsLong_' + supportType]}</dd>
+      `
     // handle icons
     } else {
-      output += `<dt>${writeIcon(strings, item, '', true)}</dt>`
-      output += `<dd>${strings['legend_' + item]}</dd>`
+      return viperHTML`<dt>${writeIcon(strings, item, '', true)}</dt>
+      <dd>${strings['legend_' + item]}</dd>
+      `
     }
-  }
-
-  output += '</dl>'
-  output += '</section>'
-  return output
+  })}
+    </dl>
+  </section>`
 }
 
 module.exports = render
