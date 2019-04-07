@@ -34,11 +34,11 @@ const browsers = {
 }
 
 /* The rendering function */
-function render (compatData, configuration) {
+function render (compatData, configuration = {}) {
   const query = configuration.query
   const depth = configuration.depth || 1
   const forMDNURL = configuration.forMDNURL
-  const category = query.split('.')[0]
+  const category = query ? query.split('.')[0] : undefined
   let legendItems = new Set() // entries will be unique
   let output = ''
   let strings = defaultStrings
@@ -63,8 +63,8 @@ function render (compatData, configuration) {
   }
 
   /* Gather a flat list of features */
-  let features = []
-  if (compatData.__compat) {
+  const features = []
+  if (compatData && compatData.__compat) {
     let feature = compatData.__compat
     feature.description = strings['feature_basicsupport']
     const identifier = query.split('.').pop()
@@ -94,6 +94,7 @@ Get features that should be displayed according to the query and the depth setti
 Flatten them into a features array
 */
 function traverseFeatures (obj, depth, identifier, features) {
+  if (!obj) return
   depth--
   if (depth >= 0) {
     for (let i in obj) {
