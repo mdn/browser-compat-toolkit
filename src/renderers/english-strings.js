@@ -1,5 +1,8 @@
+// TODO: Migrate localization to Fluent ( https://www.npmjs.com/package/fluent )
+
 module.exports = {
   'bc_history_head': 'Implementation Notes',
+
   'bc_icon_name_altname': 'Alternate Name',
   'bc_icon_name_chrome': 'Chrome',
   'bc_icon_name_chrome_android': 'Chrome for Android',
@@ -24,15 +27,20 @@ module.exports = {
   'bc_icon_name_samsunginternet_android': 'Samsung Internet',
   'bc_icon_name_server': 'Server',
   'bc_icon_name_webview_android': 'Android webview',
+
   'bc_icon_title_altname': 'Uses the non-standard name: <code>$1$</code>',
-  'bc_icon_title_deprecated': 'Deprecated. Not for use in new websites.',
+  'bc_icon_title_deprecated': 'Deprecated. Not for use in new $1$.',
+  'bc_icon_title_deprecated_web': 'websites',
+  'bc_icon_title_deprecated_ext': 'extensions',
   'bc_icon_title_disabled': 'User must explicitly enable this feature.',
   'bc_icon_title_experimental': 'Experimental. Expect behavior to change in the future.',
   'bc_icon_title_footnote': 'See implementation notes',
   'bc_icon_title_non-standard': 'Non-standard. Expect poor cross-browser support.',
   'bc_icon_title_prefix': 'Requires the vendor prefix: $1$',
+
   'feature': 'Feature',
   'feature_basicsupport': 'Basic support',
+
   'legend': 'Legend',
   'legend_altname': 'Uses a non-standard name.',
   'legend_deprecated': 'Deprecated. Not for use in new websites.',
@@ -41,6 +49,7 @@ module.exports = {
   'legend_footnote': 'See implementation notes.',
   'legend_non-standard': 'Non-standard. Expect poor cross-browser support.',
   'legend_prefix': 'Requires a vendor prefix or different name for use.',
+
   'supportsLong_no': 'No support',
   'supportsLong_partial': 'Partial support',
   'supportsLong_unknown': 'Compatibility unknown',
@@ -51,5 +60,21 @@ module.exports = {
   'supportsShort_unknown_title': 'Compatibility unknown; please update this.',
   'supportsShort_yes': 'Yes',
   'supportsShort_yes_title': 'Please update this with the earliest version of support.',
+
+  // This will be a lot prettier once the translations are moved to Fluent,
+  // but that’s for another PR, as #8 is already rather big.
+  'flag_browser': ' To change preferences in ${browser}, visit ${url}.',
+  'flag_support_start': 'From version ${versionAdded}',
+  'flag_support_range': 'From version ${versionAdded} until version ${versionRemoved} (exclusive)',
+  'flag_support_end': 'Until version ${versionRemoved} (exclusive)',
+  'flag_start': 'This feature is behind the ',
+  'flag_start_cont': '${support}: this feature is behind the ',
+  'flag_valueToSet': ' (needs to be set to <code>${valueToSet}</code>)',
+  'flag_type_preference': ' preference${valueToSet}',
+  'flag_type_compile_flag': ' compile flag${valueToSet}',
+  'flag_type_runtime_flag': ' runtime flag${valueToSet}',
+  'flag_misc_joiner': ' and the ',
+  'flag_misc_end': '.',
+
   'no_data_found': 'No compatibility data found. Please contribute data for "${query}" (depth: ${depth}) to the <a href="https://github.com/mdn/browser-compat-data">MDN compatibility data repository</a>.'
-}
+};

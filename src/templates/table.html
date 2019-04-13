@@ -1,0 +1,118 @@
+{%- import "./macros.html" as macros -%}
+
+<!-- Compat table global structure -->
+<div class="bc-data hidden">
+	<table class="bc-table bc-table-{{ category }}">
+		<!-- Write compat table header -->
+		<thead>
+			<!-- Write compat platform row -->
+			<tr class="bc-platforms">
+				<td></td>
+				{%- for platform in platforms %}
+				<th colspan="{{ platform.count }}" class="bc-platform-{{ platform.id }}">
+					{{- macros.icon(platform.icon) }}
+				</th>
+				{%- endfor %}
+			</tr>
+			<!-- Write compat browsers row -->
+			<tr class="bc-browsers">
+				<td></td>
+				{%- for browser in browsers %}
+				<th class="bc-browser-{{ browser.id }}">
+					{{- macros.icon(browser.icon) }}
+				</th>
+				{%- endfor %}
+			</tr>
+		</thead>
+
+		<!-- Write compat table body -->
+		<tbody>
+			{%- for feature in features %}
+			<tr>
+				<th scope="row">
+					{%- if feature.header.href %}
+					<a href="{{ feature.header.href }}">
+						{% endif -%}
+						{{ feature.header.name | safe }}
+						{%- if feature.header.href %}
+					</a>
+					{%- endif %}
+					{%- if feature.header.icons %}
+					<div class="bc-icons">
+						{%- for icon in feature.header.icons %}
+						{{- macros.icon(icon) }}
+						{%- endfor %}
+					</div>
+					{%- endif %}
+				</th>
+				{%- for support in feature.support %}
+				<td class="bc-supports-{{ support.class }} bc-browser-{{ support.browser.id }}
+					{%- if support.needsNote %} bc-has-history{% endif %}">
+					{{- macros.support(support.info) }}
+					{%- if support.icons %}
+					<div class="bc-icons">
+						{%- for icon in support.icons %}
+						{{- macros.icon(icon) }}
+						{%- endfor %}
+					</div>
+					{%- endif %}
+					{%- if support.notes %}
+					<section class="bc-history" aria-hidden="true">
+						<dl>
+							{%- if support.notes %}
+							{%- for note in support.notes %}
+							<dt class="bc-supports-{{ note.header.class }} bc-supports">
+								{{- macros.support(note.header.info) }}
+								{%- if note.header.icons %}
+								<div class="bc-icons">
+									{%- for icon in note.header.icons %}
+									{{- macros.icon(icon) }}
+									{%- endfor %}
+								</div>
+								{%- endif %}
+							</dt>
+							{%- if note.content %}
+							<dd>
+								{%- for subnote in note.content %}
+								{{- macros.icon(subnote.icon) }}
+								{{ subnote.text | safe }}
+								{%- endfor %}
+							</dd>
+							{%- endif %}
+							{%- endfor %}
+							{%- endif %}
+						</dl>
+					</section>
+					{%- endif %}
+				</td>
+				{%- endfor %}
+			</tr>
+			{%- endfor %}
+		</tbody>
+	</table>
+
+	<!-- Write compat table legend -->
+	<section class="bc-legend">
+		<h3 class="offscreen">{{ legend.title }}</h3>
+		<dl>
+			{%- for item in legend.items %}
+			{%- if item.support %}
+			<dt>
+				<span class="bc-supports-{{ item.support }} bc-supports">
+					<abbr title="{{ item.title }}" class="bc-level bc-level-{{ item.support }} only-icon">
+						<span>{{ item.title | safe }}</span>
+						&nbsp;
+					</abbr>
+				</span>
+			</dt>
+			<dd>{{ item.title | safe }}</dd>
+			{%- else %}
+			<dt>
+				{{- macros.icon(item.icon) }}
+			</dt>
+			<dd>{{ item.title | safe }}</dd>
+			{%- endif %}
+			{%- endfor %}
+		</dl>
+	</section>
+</div>

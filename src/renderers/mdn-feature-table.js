@@ -23,7 +23,8 @@ render(bcd.webextensions.api.alarms, {'query': 'webextensions.api.alarms'});
 
 // import * as defaultStrings from './english-strings'
 
-const defaultStrings = require('./english-strings')
+const defaultStrings = require('./english-strings');
+const nunjucks = require('nunjucks');
 
 const browsers = {
   'desktop': ['chrome', 'edge', 'firefox', 'ie', 'opera', 'safari'],
@@ -31,62 +32,61 @@ const browsers = {
   'server': ['nodejs'],
   'webextensions-desktop': ['chrome', 'edge', 'firefox', 'opera'],
   'webextensions-mobile': ['firefox_android']
-}
+};
 
 /* The rendering function */
 function render (compatData, configuration) {
-  const query = configuration.query
-  const depth = configuration.depth || 1
-  const forMDNURL = configuration.forMDNURL
-  const category = query.split('.')[0]
-  let legendItems = new Set() // entries will be unique
-  let output = ''
-  let strings = defaultStrings
+  const query = configuration.query;
+  const depth = configuration.depth || 1;
+  const forMDNURL = configuration.forMDNURL;
+  const category = query.split('.')[0];
+  let legendItems = new Set(); // entries will be unique
+  let output = '';
+  let strings = defaultStrings;
 
   for (var key in configuration.strings) {
-    strings[key] = configuration.strings[key]
+    strings[key] = configuration.strings[key];
   }
 
-  let bcCategory = 'web'
-  let platforms = ['desktop', 'mobile']
-  let displayBrowers = [...browsers['desktop'], ...browsers['mobile']]
+  let bcCategory = 'web';
+  let platforms = ['desktop', 'mobile'];
+  let displayBrowers = [...browsers['desktop'], ...browsers['mobile']];
 
   if (category === 'javascript') {
-    bcCategory = 'js'
-    displayBrowers.push(...browsers['server'])
-    platforms.push('server')
+    bcCategory = 'js';
+    displayBrowers.push(...browsers['server']);
+    platforms.push('server');
   }
   if (category === 'webextensions') {
-    bcCategory = 'ext'
-    displayBrowers = [...browsers['webextensions-desktop'], ...browsers['webextensions-mobile']]
-    platforms = ['webextensions-desktop', 'webextensions-mobile']
+    bcCategory = 'ext';
+    displayBrowers = [...browsers['webextensions-desktop'], ...browsers['webextensions-mobile']];
+    platforms = ['webextensions-desktop', 'webextensions-mobile'];
   }
 
   /* Gather a flat list of features */
-  let features = []
+  let features = [];
   if (compatData.__compat) {
-    let feature = compatData.__compat
-    feature.description = strings['feature_basicsupport']
-    const identifier = query.split('.').pop()
-    features.push({[identifier]: feature})
+    let feature = compatData.__compat;
+    feature.description = strings['feature_basicsupport'];
+    const identifier = query.split('.').pop();
+    features.push({[identifier]: feature});
   }
-  traverseFeatures(compatData, depth, '', features)
+  traverseFeatures(compatData, depth, '', features);
 
   if (features.length > 0) {
-    output = '<div class="bc-data hidden">'
-    output += `<table class="bc-table bc-table-${bcCategory}">`
-    output += writeCompatHead(strings, platforms, displayBrowers)
-    output += writeCompatBody(strings, features, forMDNURL, displayBrowers, legendItems)
-    output += '</table>'
-    output += writeLegend(strings, legendItems)
-
-    output += '</div>'
+    output = nunjucks.render('src/templates/table.html', {
+      category: bcCategory,
+      platforms: processPlatforms(strings, platforms),
+      browsers: processBrowsers(strings, displayBrowers),
+      features: processFeatures(strings, features, forMDNURL, displayBrowers, legendItems, bcCategory),
+      legend: processLegend(strings, legendItems)
+    });
   } else {
-    let errString = strings['no_data_found'].replace('${query}', query).replace('${depth}', depth)
-    output = errString
+    let errString = strings['no_data_found'].replace('${query}', query).replace('${depth}', depth);
+    output = errString;
   }
 
-  return output
+  return output;
 }
 
 /*
@@ -94,14 +94,14 @@ Get features that should be displayed according to the query and the depth setti
 Flatten them into a features array
 */
 function traverseFeatures (obj, depth, identifier, features) {
-  depth--
+  depth--;
   if (depth >= 0) {
     for (let i in obj) {
       if (!!obj[i] && typeof (obj[i]) === 'object' && i !== '__compat') {
         if (obj[i].__compat) {
-          features.push({[identifier + i]: obj[i].__compat})
+          features.push({[identifier + i]: obj[i].__compat});
         }
-        traverseFeatures(obj[i], depth, i + '.', features)
+        traverseFeatures(obj[i], depth, i + '.', features);
       }
     }
   }
@@ -110,143 +110,139 @@ function traverseFeatures (obj, depth, identifier, features) {
 /*
  * Rendering functions!
  */
-function writeCompatHead (strings, platforms, displayBrowers) {
-  let output = '<thead>'
-  output += writeCompatPlatformsRow(strings, platforms)
-  output += writeCompatBrowsersRow(strings, displayBrowers)
-  output += '</thead>'
-  return output
-}
-
-function writeCompatPlatformsRow (strings, platforms) {
-  let output = '<tr class="bc-platforms">'
-  output += '<td></td>'
-
+function processPlatforms (strings, platforms) {
+  let output = [];
   for (let platform of platforms) {
-    let platformCount = Object.keys(browsers[platform]).length
-    let platformId = platform.replace('webextensions-', '')
-    output += `<th colspan="${platformCount}" class="bc-platform-${platformId}">`
-    output += writeIcon(strings, platformId)
-    output += '</th>'
+    const id = platform.replace('webextensions-', '');
+    output.push({
+      id,
+      count: Object.keys(browsers[platform]).length,
+      icon: processIcon(strings, id)
+    });
   }
-
-  output += '</tr>'
-  return output
+  return output;
 }
 
-function writeCompatBrowsersRow (strings, displayBrowers) {
-  let output = '<tr class="bc-browsers">'
-  output += '<td></td>'
+function processBrowsers (strings, displayBrowers) {
+  let output = [];
   for (let browser of displayBrowers) {
-    output += `<th class="bc-browser-${browser}">`
-    output += writeIcon(strings, browser)
-    output += '</th>'
+    output.push({
+      id: browser,
+      icon: processIcon(strings, browser)
+    });
   }
-  output += '</tr>'
-  return output
+  return output;
 }
 
-function writeCompatBody (strings, features, forMDNURL, displayBrowers, legendItems) {
-  let output = '<tbody>'
-  output += writeCompatFeatureRow(strings, features, forMDNURL, displayBrowers, legendItems)
-  output += '</tbody>'
-  return output
-}
-
-function writeCompatFeatureRow (strings, features, forMDNURL, displayBrowers, legendItems) {
-  let output = ''
-  for (let row of features) {
-    output += '<tr>'
-    let feature = Object.keys(row).map((k) => row[k])[0]
-    output += `<th scope="row">${writeFeatureName(strings, row, feature, forMDNURL, legendItems)}</th>`
-    output += `${writeCompatCells(strings, feature.support, displayBrowers, legendItems)}</tr>`
-    output += '</tr>'
+function processFeatures (strings, features, forMDNURL, displayBrowers, legendItems, bcCategory) {
+  let output = [];
+  for (const row of features) {
+    const feature = Object.keys(row).map((k) => row[k])[0];
+    output.push({
+      header: processFeatureHeader(strings, row, feature, forMDNURL, legendItems, bcCategory),
+      support: processFeatureSupport(strings, feature.support, displayBrowers, legendItems)
+    });
   }
-  return output
+  return output;
 }
 
-/* Write a icon with localized hover text */
-function writeIcon (strings, iconSlug, replacer, isLegend) {
-  let iconName = stringOrKey(strings, 'bc_icon_name_' + iconSlug).replace('$1$', replacer)
-  let iconTitle = stringOrKey(strings, 'bc_icon_title_' + iconSlug).replace('$1$', replacer)
+/**
+ * Write icon with localized hover text
+ *
+ * @param {String[]} strings
+ * @param {String} iconSlug
+ * @param {String} [replacer]
+ * @param {Boolean} [isLegend=false]
+ *
+ * @return {nm$_mdn-feature-table.processIcon.output}
+ */
+function processIcon (strings, iconSlug, replacer, isLegend = false) {
+  /**
+   * @type Object
+   * @property {String} name The icon name
+   * @property {String} id The icon ID
+   * @property {String} title The icon title
+   */
+  let output = {
+    name: stringOrKey(strings, 'bc_icon_name_' + iconSlug).replace('$1$', replacer),
+    id: iconSlug,
+    title: stringOrKey(strings, 'bc_icon_title_' + iconSlug).replace('$1$', replacer)
+  };
   if (isLegend) {
-    iconName = strings['legend_' + iconSlug]
-    iconTitle = iconName
+    output.name = strings['legend_' + iconSlug];
+    output.title = output.name;
   }
   // there is no iconTitle, fall back to iconName
-  if (iconTitle === 'bc_icon_title_' + iconSlug) {
-    iconTitle = iconName
+  if (output.title === 'bc_icon_title_' + iconSlug) {
+    output.title = output.name;
   }
-  let output = ''
-  output += `<abbr class="only-icon" title="${iconTitle}">`
-  output += `<span>${iconName}</span>`
-  output += `<i aria-hidden="true" class="ic-${iconSlug}"></i>`
-  output += '</abbr>'
-  return output
+  return output;
 }
 
-function writeFeatureName (strings, row, feature, forMDNURL, legendItems) {
-  let desc = ''
-  let featureIcons = ''
-  let experimentalIcon = ''
-  let deprecatedIcon = ''
-  let nonStandardIcon = ''
-  let label = Object.keys(row)[0]
+function processFeatureHeader (strings, row, feature, forMDNURL, legendItems, bcCategory) {
+  let label = Object.keys(row)[0];
+  let output = {
+    name: ''
+  };
 
   if (feature.description) {
     // Basic support or unnested features need no prefixing
     if (label.indexOf('.') === -1) {
-      desc += feature.description
+      output.name = feature.description;
       // otherwise add a prefix so that we know where this belongs to (e.g. "parse: ISO 8601 format")
     } else {
-      desc += `<code>${label.slice(0, label.lastIndexOf('.'))}</code>: ${feature.description}`
+      output.name = `<code>${label.slice(0, label.lastIndexOf('.'))}</code>: ${feature.description}`;
     }
   } else {
-    desc += `<code>${Object.keys(row)[0]}</code>`
+    output.name = `<code>${Object.keys(row)[0]}</code>`;
   }
   if (feature.mdn_url) {
-    let href = feature.mdn_url
+    let href = feature.mdn_url;
     if (forMDNURL) {
       // Convert to relative MDN url
-      href = feature.mdn_url.replace('https://developer.mozilla.org', '')
-      let mdnSlug = forMDNURL.split('/docs/')[1]
-      if (href === '/docs/' + mdnSlug) {
+      href = feature.mdn_url.replace('https://developer.mozilla.org', '');
+      let mdnSlug = forMDNURL.split('/docs/')[1];
+      if (href.split('#')[0] === '/docs/' + mdnSlug) {
         // Don't link to the current page
-        href = ''
+        let anchor = '';
+        if (feature.mdn_url.includes('#')) {
+          anchor = feature.mdn_url.substring(feature.mdn_url.indexOf('#'));
+        }
+        href = anchor;
       }
     }
     if (href !== '') {
-      desc = `<a href="${href}">${desc}</a>`
+      output.href = href;
     }
   }
 
   if (feature.hasOwnProperty('status')) {
+    let featureIcons;
     if (feature.status.experimental === true) {
-      experimentalIcon = writeIcon(strings, 'experimental')
-      legendItems.add('experimental')
+      featureIcons = featureIcons || [];
+      featureIcons.push(processIcon(strings, 'experimental'));
+      legendItems.add('experimental');
     }
     if (feature.status.deprecated === true) {
-      deprecatedIcon = writeIcon(strings, 'deprecated')
-      legendItems.add('deprecated')
+      featureIcons = featureIcons || [];
+      featureIcons.push(processIcon(strings, 'deprecated', strings['bc_icon_title_deprecated_' + (bcCategory === 'ext' ? 'ext' : 'web')]));
+      legendItems.add('deprecated');
     }
     if (feature.status.standard_track === false) {
-      nonStandardIcon = writeIcon(strings, 'non-standard')
-      legendItems.add('non-standard')
+      featureIcons = featureIcons || [];
+      featureIcons.push(processIcon(strings, 'non-standard'));
+      legendItems.add('non-standard');
     }
-    if (experimentalIcon || deprecatedIcon || nonStandardIcon) {
-      featureIcons += ' <div class="bc-icons">'
-      featureIcons += experimentalIcon
-      featureIcons += deprecatedIcon
-      featureIcons += nonStandardIcon
-      featureIcons += '</div>'
+    if (featureIcons) {
+      output.icons = featureIcons;
     }
   }
-  return desc + featureIcons
+  return output;
 }
 
 /* Use the key if no string is defined */
 function stringOrKey (strings, key) {
-  return strings[key] || key
+  return strings[key] || key;
 }
 
 /*
@@ -257,66 +253,56 @@ or the version number
 `partial` is either null, true, or false indicating partial_implementation
 */
 function getCellString (strings, added, removed, partial) {
-  let output = ''
+  let output = {};
   switch (added) {
     case null:
-      output = `<abbr title="${strings['supportsShort_unknown_title']}">
-                ${strings['supportsShort_unknown']}
-              </abbr>`
-      break
+      output.title = strings['supportsShort_unknown_title'];
+      output.text = strings['supportsShort_unknown'];
+      break;
     case true:
-      output = `<abbr title="${strings['supportsLong_yes']}"
-                class="bc-level-yes only-icon">
-                <span>${strings['supportsLong_yes']}</span>
-              </abbr>
-              ${strings['supportsShort_yes']}`
-      break
+      output.class = 'bc-level-yes';
+      output.title = strings['supportsLong_yes'];
+      output.text = strings['supportsLong_yes'];
+      output.added = strings['supportsShort_yes'];
+      break;
     case false:
-      output = `<abbr title="${strings['supportsLong_no']}"
-                class="bc-level-no only-icon">
-                <span>${strings['supportsLong_no']}</span>
-              </abbr>
-              ${strings['supportsShort_no']}`
-      break
+      output.class = 'bc-level-no';
+      output.title = strings['supportsLong_no'];
+      output.text = strings['supportsLong_no'];
+      output.added = strings['supportsShort_no'];
+      break;
     default:
-      output = `<abbr title="${strings['supportsLong_yes']}"
-                class="bc-level-yes only-icon">
-                <span>${strings['supportsLong_yes']}</span>
-              </abbr>
-              ${added}`
+      output.class = 'bc-level-yes';
+      output.title = strings['supportsLong_yes'];
+      output.text = strings['supportsLong_yes'];
+      output.added = added;
+      break;
   }
   if (removed) {
-    output = `<abbr title="${strings['supportsLong_no']}"
-              class="bc-level-no only-icon">
-              <span>${strings['supportsLong_no']}</span>
-            </abbr>`
+    output.class = 'bc-level-no';
+    output.title = strings['supportsLong_no'];
+    output.text = strings['supportsLong_no'];
     // We don't know when supported started
     if (typeof (added) === 'boolean' && added) {
-      output += '?'
-    } else { // We know when
-      output += added
+      output.added = '?';
     }
-    output += '&nbsp;— '
     // We don't know when supported ended
     if (typeof (removed) === 'boolean' && removed) {
-      output += '?'
+      output.removed = '?';
     } else { // We know when
-      output += removed
+      output.removed = removed;
     }
     // removed wins over partial
   } else if (partial) {
-    output = `<abbr title="${strings['supportsLong_partial']}"
-              class="bc-level-partial only-icon">
-              <span>${strings['supportsLong_partial']}</span>
-            </abbr>`
+    output.class = 'bc-level-partial';
+    output.title = strings['supportsLong_partial'];
+    output.text = strings['supportsLong_partial'];
     // Display "Partial" instead of "Yes", "No", or "?" if we have no version string
     if (typeof (added) !== 'string') {
-      output += strings['supportsShort_partial']
-    } else {
-      output += added
+      output.added = strings['supportsShort_partial'];
     }
   }
-  return output
+  return output;
 }
 
 /*
@@ -326,126 +312,119 @@ a CSS class to apply to the table cell.
 `supportData` is a (or an array of) support_statement(s)
 */
 function getSupportClass (supportInfo) {
-  let cssClass = 'unknown'
+  let cssClass = 'unknown';
 
   if (Array.isArray(supportInfo)) {
     // the first entry should be the most relevant/recent and will be treated as "the truth"
     checkSupport(supportInfo[0].version_added,
       supportInfo[0].version_removed,
-      supportInfo[0].partial_implementation)
+      supportInfo[0].partial_implementation);
   } else if (supportInfo) { // there is just one support statement
     checkSupport(supportInfo.version_added,
       supportInfo.version_removed,
-      supportInfo.partial_implementation)
+      supportInfo.partial_implementation);
   } else { // this browser has no info, it's unknown
-    return 'unknown'
+    return 'unknown';
   }
 
   function checkSupport (added, removed, partial) {
     if (added === null) {
-      cssClass = 'unknown'
+      cssClass = 'unknown';
     } else if (added) {
-      cssClass = 'yes'
+      cssClass = 'yes';
       if (removed) {
-        cssClass = 'no'
+        cssClass = 'no';
       }
     } else {
-      cssClass = 'no'
+      cssClass = 'no';
     }
     if (partial && !removed) {
-      cssClass = 'partial'
+      cssClass = 'partial';
     }
   }
 
-  return cssClass
+  return cssClass;
 }
 
-/*
-Generate the note for a browser flag or preference
-First checks version_added and version_removed to create a string indicating when
-a preference setting is present. Then creates a (browser specific) string
-for either a preference flag or a compile flag.
+/**
+ * Generate the note for a browser flag or preference
+ * First checks version_added and version_removed to create a string indicating when
+ * a preference setting is present. Then creates a (browser specific) string
+ * for either a preference flag or a compile flag.
+ *
+ * @param {Object} strings contains localized strings
+ * @param {Object} supportData is a support_statement
+ * @param {Object} browserId is a compat_block browser ID
+ *
+ * @return {String} The note for the flags information.
+ */
+function processFlagsNote (strings, supportData, browserId) {
+  // TODO: Should these be somewhere else?
+  const firefoxPrefs = 'about:config';
+  const chromePrefs = 'chrome://flags';
 
-// TODO Need to localize this
-
-`supportData` is a support_statement
-`browserId` is a compat_block browser ID
-*/
-function writeFlagsNote (supportData, browserId) {
-  let output = ''
-
-  const firefoxPrefs = ' To change preferences in Firefox, visit about:config.'
-  const chromePrefs = ' To change preferences in Chrome, visit chrome://flags.'
-
+  let support = '';
   if (typeof (supportData.version_added) === 'string') {
-    output = `From version ${supportData.version_added}`
+    support = strings['flag_support_start'];
+    support = support.replace('${versionAdded}', supportData.version_added);
   }
 
   if (typeof (supportData.version_removed) === 'string') {
-    if (output) {
-      output += ' '
-      output += `until version ${supportData.version_removed} (exclusive)`
+    if (support) {
+      support = strings['flag_support_range'];
+      support = support.replace('${versionAdded}', supportData.version_added);
     } else {
-      output = `Until version ${supportData.version_removed} (exclusive)`
+      support = strings['flag_support_end'];
     }
+    support = support.replace('${versionRemoved}', supportData.version_removed);
   }
 
-  let start = 'This'
-  if (output) {
-    output += ':'
-    start = ' this'
+  let start = strings['flag_start'];
+  if (support) {
+    start = strings['flag_start_cont'].replace('${support}', support);
   }
 
-  start += ' feature is behind the '
-
-  let flagsText = ''
-  let settings = ''
+  let flagsText = '';
+  let settings = '';
 
   for (let i = 0; i < supportData.flags.length; i++) {
-    let flag = supportData.flags[i]
-    let nameString = `<code>${flag.name}</code>`
+    let flag = supportData.flags[i];
+    let nameString = `<code>${flag.name}</code>`;
 
     // value_to_set is optional
-    let valueToSet = ''
+    let valueToSet = '';
     if (flag.value_to_set) {
-      valueToSet = ` (needs to be set to <code>${flag.value_to_set}</code>)`
+      valueToSet = strings['flag_valueToSet'].replace('${valueToSet}', flag.value_to_set);
     }
 
-    let typeString = ''
+    let typeString = stringOrKey(strings, `flag_type_${flag.type}`).replace('${valueToSet}', valueToSet);
     if (flag.type === 'preference') {
+      settings = strings['flag_browser'];
       switch (browserId) {
         case 'firefox':
         case 'firefox_android':
-          settings = firefoxPrefs
-          break
+          settings = settings.replace('${browser}', stringOrKey(strings, `bc_icon_name_firefox`)).replace('${url}', firefoxPrefs);
+          break;
         case 'chrome':
         case 'chrome_android':
-          settings = chromePrefs
-          break
+          settings = settings.replace('${browser}', stringOrKey(strings, `bc_icon_name_chrome`)).replace('${url}', chromePrefs);
+          break;
+        default:
+          settings = '';
+          break;
       }
-      typeString = ` preference${valueToSet}`
     }
 
-    if (flag.type === 'compile_flag') {
-      typeString = ` compile flag${valueToSet}`
-    }
-
-    if (flag.type === 'runtime_flag') {
-      typeString = ` runtime flag${valueToSet}`
-    }
-
-    flagsText += nameString + typeString
+    flagsText += nameString + typeString;
 
     if (i !== supportData.flags.length - 1) {
-      flagsText += ' and the '
+      flagsText += strings['flag_misc_joiner'];
     } else {
-      flagsText += '.'
+      flagsText += strings['flag_misc_end'];
     }
   }
 
-  output += start + flagsText + settings
-
-  return output
+  return (start + flagsText + settings);
 }
 
 /*
@@ -453,36 +432,34 @@ Generates icons for the main cell
 `supportData` is a support_statement
 
 */
-function writeCellIcons (strings, support, legendItems) {
-  let output = '<div class="bc-icons">'
+function processCellIcons (strings, support, legendItems) {
+  let output = [];
 
   if (Array.isArray(support)) {
     // the first entry should be the most relevant/recent and will be used for the main cell
-    support = support[0]
+    support = support[0];
   }
   if (support.prefix) {
-    output += writeIcon(strings, 'prefix', support.prefix) + ' '
-    legendItems.add('prefix')
+    output.push(processIcon(strings, 'prefix', support.prefix));
+    legendItems.add('prefix');
   }
 
   if (support.notes) {
-    output += writeIcon(strings, 'footnote') + ' '
-    legendItems.add('footnote')
+    output.push(processIcon(strings, 'footnote'));
+    legendItems.add('footnote');
   }
 
   if (support.alternative_name) {
-    output += writeIcon(strings, 'altname', support.alternative_name) + ' '
-    legendItems.add('altname')
+    output.push(processIcon(strings, 'altname', support.alternative_name));
+    legendItems.add('altname');
   }
 
   if (support.flags) {
-    output += writeIcon(strings, 'disabled') + ' '
-    legendItems.add('disabled')
+    output.push(processIcon(strings, 'disabled'));
+    legendItems.add('disabled');
   }
 
-  output += '</div>'
-
-  return output
+  return output;
 }
 
 /*
@@ -492,80 +469,75 @@ Create notes section
 `browserId` is a compat_block browser ID
 
 */
-function writeNotes (strings, support, browserId, legendItems) {
-  let output = '<section class="bc-history" aria-hidden="true"><dl>'
+function processNotes (strings, support, browserId, legendItems) {
+  let output = [];
 
   if (Array.isArray(support)) {
     for (let supportItem of support) {
-      writeSingleNote(strings, supportItem, browserId, legendItems)
+      output.push(processSingleNote(strings, supportItem, browserId, legendItems));
     }
   } else {
-    writeSingleNote(strings, support, browserId, legendItems)
+    output.push(processSingleNote(strings, support, browserId, legendItems));
   }
 
-  function writeSingleNote (strings, support, browserId, legendItems) {
-    let notes = []
-
-    output += `<dt class="bc-supports-${getSupportClass(support)} bc-supports">`
-    output += getCellString(strings,
-      support.version_added,
-      support.version_removed,
-      support.partial_implementation)
-    output += writeCellIcons(strings, support, legendItems)
-    output += '</dt>'
+  function processSingleNote (strings, support, browserId, legendItems) {
+    let header = {
+      class: getSupportClass(support),
+      icons: processCellIcons(strings, support, legendItems),
+      info: getCellString(strings,
+        support.version_added,
+        support.version_removed,
+        support.partial_implementation)
+    };
+    let notes = [];
 
     if (support.prefix) {
       notes.push({
-        icon: writeIcon(strings, 'prefix', support.prefix),
+        icon: processIcon(strings, 'prefix', support.prefix),
         text: strings['bc_icon_title_prefix'].replace('$1$', support.prefix)
-      })
+      });
     }
 
     if (support.notes) {
       if (Array.isArray(support.notes)) {
         for (let note of support.notes) {
           notes.push({
-            icon: writeIcon(strings, 'footnote'),
+            icon: processIcon(strings, 'footnote'),
             text: note
-          })
+          });
         }
       } else {
         notes.push({
-          icon: writeIcon(strings, 'footnote'),
+          icon: processIcon(strings, 'footnote'),
           text: support.notes
-        })
+        });
       }
     }
 
     if (support.alternative_name) {
       notes.push({
-        icon: writeIcon(strings, 'altname', support.alternative_name),
+        icon: processIcon(strings, 'altname', support.alternative_name),
         text: strings['bc_icon_title_altname'].replace('$1$', support.alternative_name)
-      })
+      });
     }
 
     if (support.flags) {
       notes.push({
-        icon: writeIcon(strings, 'disabled'),
-        text: writeFlagsNote(support, browserId)
-      })
+        icon: processIcon(strings, 'disabled'),
+        text: processFlagsNote(strings, support, browserId)
+      });
     }
 
+    let output = {
+      header
+    };
     if (notes.length > 0) {
-      for (let note of notes) {
-        output += '<dd>'
-        output += note.icon
-        output += ' ' + note.text
-        output += '</dd>'
-      }
-    } else {
-      output += '<dd></dd>'
+      output.content = notes;
     }
-  }
+    return output;
+  };
 
-  output += '</dl></section>'
-
-  return output
+  return output;
 }
 
 /*
@@ -574,87 +546,81 @@ For a single row, write all the cells that contain support data.
 an identifier for the row,  like "Basic support".
 
 */
-function writeCompatCells (strings, supportData, displayBrowers, legendItems) {
-  let output = ''
+function processFeatureSupport (strings, supportData, displayBrowers, legendItems) {
+  let output = [];
 
   for (let browserNameKey of displayBrowers) {
-    let needsNotes = false
-    let support = supportData[browserNameKey]
-    let supportInfo = ''
+    let needsNotes = false;
+    let support = supportData[browserNameKey];
+    let supportInfo;
     if (support) {
       if (Array.isArray(support)) {
         // Take first support data
-        supportInfo += getCellString(strings,
+        supportInfo = getCellString(strings,
           support[0].version_added,
           support[0].version_removed,
-          support[0].partial_implementation)
-        needsNotes = true
+          support[0].partial_implementation);
+        needsNotes = true;
       } else {
-        supportInfo += getCellString(strings,
+        supportInfo = getCellString(strings,
           support.version_added,
           support.version_removed,
-          support.partial_implementation)
+          support.partial_implementation);
         if (support.notes || support.prefix || support.flags || support.alternative_name) {
-          needsNotes = true
+          needsNotes = true;
         }
       }
     } else { // browsers are optional in the data, display them as "?" in our table
-      supportInfo += getCellString(strings, null)
+      supportInfo = getCellString(strings, null);
     }
 
-    let supportClass = getSupportClass(support)
-    output += `<td class="bc-supports-${supportClass} bc-browser-${browserNameKey}`
-    legendItems.add('support_' + supportClass)
-
+    let obj = {
+      browser: {
+        id: browserNameKey
+      },
+      class: getSupportClass(support),
+      info: supportInfo,
+      needsNotes: needsNotes
+    };
+    legendItems.add('support_' + obj.class);
     if (needsNotes) {
-      output += ' bc-has-history'
+      obj.icons = processCellIcons(strings, support, legendItems);
+      obj.notes = processNotes(strings, support, browserNameKey, legendItems);
     }
-
-    output += `">${supportInfo}`
-
-    if (needsNotes) {
-      output += writeCellIcons(strings, support, legendItems)
-      output += writeNotes(strings, support, browserNameKey, legendItems)
-    }
-    output += '</td>'
+    output.push(obj);
   }
 
-  return output
+  return output;
 }
 
-function writeLegend (strings, legendItems) {
-  let output = '<section class="bc-legend">'
-  output += `<h3 class="offscreen">${strings['legend']}</h3>`
-  output += '<dl>'
-
+function processLegend (strings, legendItems) {
   let sortOrder = ['support_yes', 'support_partial', 'support_no', 'support_unknown',
     'experimental', 'non-standard', 'deprecated',
-    'footnote', 'disabled', 'altname', 'prefix']
+    'footnote', 'disabled', 'altname', 'prefix'];
   let sortedLegendItems = Array.from(legendItems).sort(function (a, b) {
-    return sortOrder.indexOf(a) - sortOrder.indexOf(b)
-  })
+    return sortOrder.indexOf(a) - sortOrder.indexOf(b);
+  });
 
-  for (let item of sortedLegendItems) {
-    // handle supprt cells
-    if (item.indexOf('support_') !== -1) {
-      let supportType = item.substring(item.indexOf('_') + 1)
-      output += `<dt><span class="bc-supports-${supportType} bc-supports">
-                 <abbr title="${strings['supportsLong_' + supportType]}"
-                 class="bc-level bc-level-${supportType} only-icon">
-                 <span>${strings['supportsLong_' + supportType]}</span>
-                 &nbsp;
-                </abbr></span></dt>`
-      output += `<dd>${strings['supportsLong_' + supportType]}</dd>`
-    // handle icons
+  let items = [];
+  for (let itemName of sortedLegendItems) {
+    let item = {};
+    if (itemName.startsWith('support_')) {
+      // handle support cells
+      let supportType = itemName.substring(itemName.indexOf('_') + 1);
+      item.support = supportType;
+      item.title = strings['supportsLong_' + supportType];
     } else {
-      output += `<dt>${writeIcon(strings, item, '', true)}</dt>`
-      output += `<dd>${strings['legend_' + item]}</dd>`
+      // handle icons
+      item.icon = processIcon(strings, itemName, '', true);
+      item.title = strings['legend_' + itemName];
     }
+    items.push(item);
   }
 
-  output += '</dl>'
-  output += '</section>'
-  return output
+  return {
+    title: strings['legend'],
+    items
+  };
 }
 
-module.exports = render
+module.exports = render;
