@@ -159,7 +159,7 @@ function writeCompatFeatureRow (strings, features, forMDNURL, displayBrowers, le
     output += '<tr>'
     let feature = Object.keys(row).map((k) => row[k])[0]
     output += `<th scope="row">${writeFeatureName(strings, row, feature, forMDNURL, legendItems)}</th>`
-    output += `${writeCompatCells(strings, feature.support, displayBrowers, legendItems)}</tr>`
+    output += writeCompatCells(strings, feature.support, displayBrowers, legendItems)
     output += '</tr>'
   }
   return output
@@ -210,9 +210,13 @@ function writeFeatureName (strings, row, feature, forMDNURL, legendItems) {
       // Convert to relative MDN url
       href = feature.mdn_url.replace('https://developer.mozilla.org', '')
       let mdnSlug = forMDNURL.split('/docs/')[1]
-      if (href === '/docs/' + mdnSlug) {
+      if (href.split('#')[0] === '/docs/' + mdnSlug) {
         // Don't link to the current page
-        href = ''
+        let anchor = ''
+        if (feature.mdn_url.includes('#')) {
+          anchor = feature.mdn_url.substring(feature.mdn_url.indexOf('#'))
+        }
+        href = anchor
       }
     }
     if (href !== '') {
